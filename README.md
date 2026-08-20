@@ -1,2 +1,2 @@
-# Journey-Plan--APP
-app端代码
+# Journey-Plan-APP
+Journey Plan移动端代码
