@@ -74,3 +74,46 @@ $uni-color-subtitle: #555555; // 二级标题颜色
 $uni-font-size-subtitle:26px;
 $uni-color-paragraph: #3F536E; // 文章段落颜色
 $uni-font-size-paragraph:15px;
+
+/* ==========================================================================
+   Journey Plan 设计令牌（设计决策 5）
+   基准：docs/journey-plan-prototype.html v5（柠檬黄主题）
+   说明：本文件由 uni-app 自动注入所有 scss 块，页面 <style lang="scss"> 中可直接使用
+   下列变量，无需 @import。四态状态相关样式已按产品决策（2026-08-28）取消，
+   故此处不定义状态色。
+   ========================================================================== */
+
+/* 品牌色 */
+$jp-primary:   #FACC15; // 亮柠檬：主填充 / 渐变
+$jp-secondary: #84CC16; // 青柠：辅助与进度渐变
+$jp-accent:    #38BDF8; // 天蓝：强调
+
+/* 深色调（浅底上的文字/图标，保证对比度） */
+$jp-deep:      #A16207; // 深柠檬
+$jp-deep2:     #4D7C0F; // 深青柠
+$jp-deep3:     #0284C7; // 深天蓝
+
+/* 中性色 */
+$jp-bg:        #FFFBEB; // 页面背景
+$jp-fg:        #1C1917; // 主文字
+$jp-card:      #FFFFFF; // 卡片
+$jp-muted:     #FEF9C3; // 浅底块
+$jp-muted-fg:  #78716C; // 次要文字
+$jp-border:    #FEF3C7; // 边框
+
+/* 危险色（删除等破坏性操作） */
+$jp-danger:    #DC2626;
+
+/* 圆角 */
+$jp-radius:    28rpx;   // 卡片 / 大块
+$jp-radius-sm: 16rpx;   // 按钮 / 小标签
+$jp-radius-pill: 9999rpx; // 胶囊（搜索框、标签、进度条）
+
+/* 字体：原型为 Poppins（标题）+ Open Sans（正文），跨端按序回退系统字体 */
+$jp-font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$jp-font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+/* 柠檬主渐变（aurora 简化版：柠檬 → 青柠，用于封面与主按钮） */
+$jp-gradient-lemon: linear-gradient(135deg, #FACC15 0%, #FDE047 40%, #A3E635 100%);
+/* 进度条渐变（柠檬 → 青柠） */
+$jp-gradient-progress: linear-gradient(90deg, #FACC15, #84CC16);
