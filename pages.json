@@ -9,9 +9,30 @@
 			}
 		},
 		{
+			"path": "pages/assistant/assistant",
+			"style": {
+				"navigationBarTitleText": "旅行助手",
+				"navigationBarBackgroundColor": "#FFFBEB"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationBarBackgroundColor": "#FFFBEB"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"
+			}
+		},
+		{
+			"path": "pages/plan-new/plan-new",
+			"style": {
+				"navigationBarTitleText": "新建计划",
+				"navigationBarBackgroundColor": "#FFFBEB"
 			}
 		}
 	],
@@ -20,6 +41,27 @@
 		"navigationBarTitleText": "Journey Plan",
 		"navigationBarBackgroundColor": "#FFFBEB",
 		"backgroundColor": "#FFFBEB"
+	},
+	// 底部导航（决策 6）：3 Tab，纯文字无位图图标，高亮色为深柠檬 deep #A16207
+	"tabBar": {
+		"color": "#78716C",
+		"selectedColor": "#A16207",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "#FEF3C7",
+		"list": [
+			{
+				"pagePath": "pages/plans/plans",
+				"text": "我的计划"
+			},
+			{
+				"pagePath": "pages/assistant/assistant",
+				"text": "旅行助手"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"text": "个人中心"
+			}
+		]
 	},
 	"uniIdRouter": {}
 }

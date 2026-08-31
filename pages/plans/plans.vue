@@ -6,6 +6,25 @@
       <text class="page-count">共 {{ totalAll }} 段旅程 · {{ visible }} 段可见</text>
     </view>
 
+    <!-- 搜索框（FR-PL-03）：防抖 ≥300ms 后请求，忽略大小写模糊匹配 -->
+    <view class="search">
+      <view class="search-icon">
+        <image class="search-icon-img" src="/static/icon-search.svg" mode="aspectFit" />
+      </view>
+      <input
+        class="search-input"
+        v-model="keyword"
+        :value="keyword"
+        maxlength="40"
+        placeholder="搜索计划名称…"
+        placeholder-class="search-ph"
+        @input="onSearchInput"
+      />
+      <view v-if="keyword" class="search-clear" @click="clearSearch" aria-label="清空">
+        <image class="search-clear-img" src="/static/icon-close.svg" mode="aspectFit" />
+      </view>
+    </view>
+
     <!-- 计划列表（FR-PL-01） -->
     <view class="plan-list">
       <view
@@ -59,8 +78,8 @@
 
       <!-- 空态：无计划 / 无匹配结果 -->
       <view v-if="!plans.length" class="empty">
-        <text class="empty-title">{{ totalAll === 0 ? '还没有任何计划' : '没有找到匹配的计划' }}</text>
-        <text class="empty-sub">{{ totalAll === 0 ? '创建第一段旅程，开始安排行程' : '试试其他关键字，或新建一段旅程' }}</text>
+        <text class="empty-title">{{ isSearching ? '没有找到匹配的计划' : '还没有任何计划' }}</text>
+        <text class="empty-sub">{{ isSearching ? '试试其他关键字，或新建一段旅程' : '创建第一段旅程，开始安排行程' }}</text>
         <view class="empty-btn" @click="goNew">
           <view class="plus"><view class="plus-h"></view><view class="plus-v"></view></view>
           <text class="empty-btn-text">新建一段旅程</text>
@@ -111,6 +130,12 @@ const plans = ref([])
 const totalAll = ref(0)
 const visible = ref(0)
 
+/** 搜索关键字（FR-PL-03，task 2.3） */
+const keyword = ref('')
+const isSearching = ref(false) // 是否处于搜索态（区分"无计划"与"无匹配结果"空态）
+let searchTimer = null
+let reqSeq = 0 // 请求序号：丢弃过期响应，避免竞态（实施备注：前端竞态处理只在前端）
+
 const renameVisible = ref(false)
 const renameFocus = ref(false)
 const renameValue = ref('')
@@ -121,18 +146,39 @@ onShow(() => {
   load()
 })
 
+/** 列表加载（带关键字）。reqSeq 递增，仅最新请求的结果落地，丢弃过期响应。 */
 function load() {
-  return listPlans({ page: 1, page_size: 100 })
+  const seq = ++reqSeq
+  const kw = keyword.value.trim()
+  isSearching.value = !!kw
+  return listPlans({ keyword: kw, page: 1, page_size: 100 })
     .then(res => {
+      if (seq !== reqSeq) return // 已有更新的请求发出，丢弃本次过期响应
       plans.value = res.items || []
       totalAll.value = res.total || 0
       visible.value = res.total || 0
     })
     .catch(() => {
+      if (seq !== reqSeq) return
       plans.value = []
       totalAll.value = 0
       visible.value = 0
     })
+}
+
+/** 输入防抖 ≥300ms（FR-PL-03） */
+function onSearchInput(e) {
+  keyword.value = e.detail ? e.detail.value : e.target.value
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => load(), 300)
+}
+
+/** 清空搜索（保留 keyword 绑定一致性） */
+function clearSearch() {
+  keyword.value = ''
+  isSearching.value = false
+  clearTimeout(searchTimer)
+  load()
 }
 
 /** 跳转 Step1 命名页（task 3.1 落地） */
@@ -248,6 +294,63 @@ function removePlan(p) {
   font-size: 26rpx;
   color: $jp-muted-fg;
   margin-top: 6rpx;
+}
+
+/* ---------- 搜索框（FR-PL-03） ---------- */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 24rpx;
+  padding: 0 24rpx;
+  height: 80rpx;
+  box-sizing: border-box;
+  background: $jp-card;
+  border: 2rpx solid $jp-border;
+  border-radius: $jp-radius-sm;
+}
+.search:focus-within {
+  border-color: $jp-primary;
+}
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  font-size: 28rpx;
+  color: $jp-fg;
+  background: transparent;
+}
+.search-ph {
+  color: $jp-muted-fg;
+}
+.search-clear {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $jp-muted-fg;
+  cursor: pointer;
+}
+.search-clear:hover {
+  color: $jp-deep;
+}
+.search-clear-img {
+  width: 28rpx;
+  height: 28rpx;
 }
 
 /* ---------- 卡片 ---------- */
