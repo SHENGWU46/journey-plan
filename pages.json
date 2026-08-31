@@ -1,5 +1,13 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	// pages 数组第一项为应用启动页（tasks.md 实施备注：启动页改为 pages/plans/plans，Hello 页保留但不再作为启动页）
+	"pages": [
+		{
+			"path": "pages/plans/plans",
+			"style": {
+				"navigationBarTitleText": "我的计划",
+				"navigationBarBackgroundColor": "#FFFBEB"
+			}
+		},
 		{
 			"path": "pages/index/index",
 			"style": {
@@ -9,9 +17,9 @@
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarTitleText": "Journey Plan",
+		"navigationBarBackgroundColor": "#FFFBEB",
+		"backgroundColor": "#FFFBEB"
 	},
 	"uniIdRouter": {}
 }
