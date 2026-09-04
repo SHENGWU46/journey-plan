@@ -109,8 +109,8 @@ $jp-radius:    28rpx;   // 卡片 / 大块
 $jp-radius-sm: 16rpx;   // 按钮 / 小标签
 $jp-radius-pill: 9999rpx; // 胶囊（搜索框、标签、进度条）
 
-/* 字体：原型为 Poppins（标题）+ Open Sans（正文），跨端按序回退系统字体 */
-$jp-font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+/* 字体：标题用霞鹜文楷 Mono（等宽中文衬线，GB 屏幕版），回退 Poppins/系统；正文保持系统无衬线 */
+$jp-font-heading: 'LXGW WenKai Mono GB Screen', 'LXGW WenKai', 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 $jp-font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
 /* 柠檬主渐变（aurora 简化版：柠檬 → 青柠，用于封面与主按钮） */

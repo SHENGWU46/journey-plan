@@ -34,34 +34,30 @@
 				"navigationBarTitleText": "新建计划",
 				"navigationBarBackgroundColor": "#FFFBEB"
 			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationBarBackgroundColor": "#FFFBEB"
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册",
+				"navigationBarBackgroundColor": "#FFFBEB"
+			}
 		}
 	],
 	"globalStyle": {
+		"navigationStyle": "custom",
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "Journey Plan",
 		"navigationBarBackgroundColor": "#FFFBEB",
 		"backgroundColor": "#FFFBEB"
 	},
-	// 底部导航（决策 6）：3 Tab，纯文字无位图图标，高亮色为深柠檬 deep #A16207
-	"tabBar": {
-		"color": "#78716C",
-		"selectedColor": "#A16207",
-		"backgroundColor": "#FFFFFF",
-		"borderStyle": "#FEF3C7",
-		"list": [
-			{
-				"pagePath": "pages/plans/plans",
-				"text": "我的计划"
-			},
-			{
-				"pagePath": "pages/assistant/assistant",
-				"text": "旅行助手"
-			},
-			{
-				"pagePath": "pages/profile/profile",
-				"text": "个人中心"
-			}
-		]
-	},
+	// 底部导航改为自定义组件（components/AppTabBar.vue），见 plans/assistant/profile 三页引入。
+	// 选中效果：图标背景变柠檬黄 #FACC15，文字颜色保持 #78716C 不变。
 	"uniIdRouter": {}
 }

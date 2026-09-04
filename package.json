@@ -10,6 +10,7 @@
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5020520260829001",
     "@dcloudio/uni-h5": "3.0.0-alpha-5020520260829001",
+    "pinia": "^2.1.7",
     "vue": "3.4.21"
   },
   "devDependencies": {

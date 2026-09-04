@@ -52,3 +52,46 @@ export function renamePlan(id, payload) {
 export function deletePlan(id) {
   return apiDel('/plans/' + id)
 }
+
+/**
+ * 更新计划基本信息（目的地/日期/人数/预算/天数/完成态等）。
+ * TODO(backend): 后端当前 PATCH /plans/{id} 仅支持 { name }，多字段更新接口待实现
+ * （见 journey-plan-api/app/routers/plans.py）。前端按原型设计先行调用，待后端补齐后生效。
+ * @param {number|string} id
+ * @param {Object} payload 任意可更新字段
+ * @returns {Promise<Object>} 更新后的计划对象
+ */
+export function updatePlan(id, payload) {
+  return apiPatch('/plans/' + id, payload)
+}
+
+/**
+ * 获取单个计划详情。
+ * TODO(backend): 后端当前无 GET /plans/{id}，待实现。前端用于「继续编辑草稿」回填。
+ * @param {number|string} id
+ * @returns {Promise<Object>}
+ */
+export function getPlan(id) {
+  return apiGet('/plans/' + id)
+}
+
+/**
+ * 生成每日计划（AI 推荐）。
+ * TODO(backend): 后端无此接口，待实现。前端按原型调用，失败则本地 mock。
+ * @param {number|string} id
+ * @param {Object} [opts] { confirm_ids?: number[], avoid_ids?: number[] }
+ * @returns {Promise<{days: Array}>}
+ */
+export function generateDailyPlans(id, opts = {}) {
+  return apiPost('/plans/' + id + '/days', opts)
+}
+
+/**
+ * 获取每日计划列表。
+ * TODO(backend): 后端无此接口，待实现。
+ * @param {number|string} id
+ * @returns {Promise<{days: Array}>}
+ */
+export function getDailyPlans(id) {
+  return apiGet('/plans/' + id + '/days')
+}
