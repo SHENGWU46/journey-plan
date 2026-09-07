@@ -173,11 +173,9 @@ const emptySub = computed(() =>
 )
 
 function openPlan(p) {
-  if (!p.completed) {
-    uni.navigateTo({ url: `/pages/plan-new/plan-new?id=${p.id}` })
-  } else {
-    uni.navigateTo({ url: `/pages/plan-detail/plan-detail?id=${p.id}` })
-  }
+  // TODO: 已完成计划本应有独立详情页，但 pages/plan-detail 既未实现、也未在 pages.json
+  //       注册，跳转会触发「页面加载失败」。暂与草稿共用 plan-new（getPlan 会回填已存信息）。
+  continuePlan(p)
 }
 function continuePlan(p) {
   uni.navigateTo({ url: `/pages/plan-new/plan-new?id=${p.id}` })

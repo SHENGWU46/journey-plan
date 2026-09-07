@@ -214,7 +214,7 @@ const progress = computed(() => {
 .op-text {
   font-size: 24rpx;
   font-weight: 600;
-  color: $jp-muted-fg;
+  color: $jp-deep;
 }
 .op:hover .op-text {
   color: $jp-deep;

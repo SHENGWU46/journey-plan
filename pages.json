@@ -48,6 +48,13 @@
 				"navigationBarTitleText": "注册",
 				"navigationBarBackgroundColor": "#FFFBEB"
 			}
+		},
+		{
+			"path": "pages/day-plan/day-plan",
+			"style": {
+				"navigationBarTitleText": "每日计划",
+				"navigationBarBackgroundColor": "#FFFBEB"
+			}
 		}
 	],
 	"globalStyle": {

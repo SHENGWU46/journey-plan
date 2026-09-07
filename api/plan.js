@@ -10,7 +10,7 @@
 //   completed / total_budget / total_days / generated_days / created_at / updated_at
 // 草稿语义：completed=false 即草稿，destination/日期/people_count 为 null，total_budget 为 0。
 
-import { apiGet, apiPost, apiPatch, apiDel } from './request.js'
+import { apiGet, apiPost, apiPut, apiPatch, apiDel } from './request.js'
 
 /**
  * 计划列表（关键字搜索 + 分页，按 updated_at 倒序）
@@ -27,7 +27,7 @@ export function listPlans(params = {}) {
 
 /**
  * 创建草稿计划
- * @param {Object} payload { name }，名称去首尾空格后须为 2-20 字符，否则后端返回 422
+ * @param {Object} payload { name }，名称去首尾空格后须为 1-20 字符，否则后端返回 422
  * @returns {Promise<Object>} 新建的计划对象
  */
 export function createPlan(payload) {
@@ -55,8 +55,8 @@ export function deletePlan(id) {
 
 /**
  * 更新计划基本信息（目的地/日期/人数/预算/天数/完成态等）。
- * TODO(backend): 后端当前 PATCH /plans/{id} 仅支持 { name }，多字段更新接口待实现
- * （见 journey-plan-api/app/routers/plans.py）。前端按原型设计先行调用，待后端补齐后生效。
+ * 对应后端 PATCH /plans/{id}（app/routers/plans.py）：支持多字段部分更新，
+ * 未提供字段保持原值；total_days 为前端派生，后端忽略。
  * @param {number|string} id
  * @param {Object} payload 任意可更新字段
  * @returns {Promise<Object>} 更新后的计划对象
@@ -66,8 +66,7 @@ export function updatePlan(id, payload) {
 }
 
 /**
- * 获取单个计划详情。
- * TODO(backend): 后端当前无 GET /plans/{id}，待实现。前端用于「继续编辑草稿」回填。
+ * 获取单个计划详情（对应后端 GET /plans/{id}，含 total_days 等派生字段）。
  * @param {number|string} id
  * @returns {Promise<Object>}
  */
@@ -76,22 +75,44 @@ export function getPlan(id) {
 }
 
 /**
- * 生成每日计划（AI 推荐）。
- * TODO(backend): 后端无此接口，待实现。前端按原型调用，失败则本地 mock。
- * @param {number|string} id
- * @param {Object} [opts] { confirm_ids?: number[], avoid_ids?: number[] }
- * @returns {Promise<{days: Array}>}
+ * 生成某日计划（agent 接口）。
+ * 后端：POST /plans/{id}/days
+ *
+ * 入参：date 必填；tour_time / daily_budget 可选。
+ *      第一步填的目的地/往返时间/同行人数/总预算由服务端按 plan_id 从计划本体读取
+ *      后注入 agent，不在此传递，避免客户端篡改计划级事实。
+ *
+ * 返回：{ date, weather, attractions: [{ name, type, suggested_duration,
+ *        budget_per_person, description }] }
+ *
+ * @param {number|string} id 计划 id
+ * @param {{date: string, tour_time?: string, daily_budget?: number}} payload
+ * @returns {Promise<Object>}
  */
-export function generateDailyPlans(id, opts = {}) {
-  return apiPost('/plans/' + id + '/days', opts)
+export function generateDailyPlans(id, payload) {
+  return apiPost('/plans/' + id + '/days', payload)
 }
 
 /**
- * 获取每日计划列表。
- * TODO(backend): 后端无此接口，待实现。
+ * 获取某计划下已保存的每日计划列表（按天序号升序）。
+ * 后端：GET /plans/{id}/days → { items, total }
  * @param {number|string} id
- * @returns {Promise<{days: Array}>}
+ * @returns {Promise<{items: Array, total: number}>}
  */
 export function getDailyPlans(id) {
   return apiGet('/plans/' + id + '/days')
+}
+
+/**
+ * 新增或更新某天的计划（按 plan_id + day_index 幂等 upsert）。
+ * 后端：PUT /plans/{id}/days/{dayIndex}
+ *
+ * @param {number|string} id 计划 id
+ * @param {number} dayIndex 第几天，从 1 开始
+ * @param {{date: string, weather?: string, tour_time?: string,
+ *          daily_budget?: number|null, attractions?: Array}} payload
+ * @returns {Promise<Object>} 保存后的单日计划对象
+ */
+export function saveDailyPlan(id, dayIndex, payload) {
+  return apiPut('/plans/' + id + '/days/' + dayIndex, payload)
 }

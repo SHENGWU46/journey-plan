@@ -30,4 +30,15 @@
 		height: 100%;
 		overflow: hidden;
 	}
+
+	/* 隐藏 scroll-view 在 H5 下的默认滚动条，保持移动端观感 */
+	.uni-scroll-view::-webkit-scrollbar {
+		display: none;
+		width: 0;
+		height: 0;
+	}
+	.uni-scroll-view {
+		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none; /* 旧 Edge / IE */
+	}
 </style>

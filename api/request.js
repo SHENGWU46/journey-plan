@@ -14,10 +14,20 @@
 
 import { getToken, clearSession } from '@/utils/token.js'
 
-export const BASE_URL = 'http://localhost:8000'
+// 注意：后端仅监听 IPv4 的 127.0.0.1。浏览器解析 localhost 会优先尝试 IPv6(::1)，
+// 而后端未监听 IPv6，导致 XHR 连接 ::1 失败/挂起，表现为「连接服务器超时」。
+// 故此处用明确的 IPv4 地址，避免 localhost 的 IPv6 解析问题。
+//
+// 后端运行在 8000（已加载含每日计划路由的新代码）。
+// 历史说明：早期 8000 曾跑旧代码（缺 days 路由），本会话临时在 8001 起过一个新实例；
+// 现 8000 已重启为新代码，8001 临时实例已关闭，故指向 8000。
+export const BASE_URL = 'http://127.0.0.1:8000'
 
 /** 登录页路径（token 失效时跳转目标） */
 const LOGIN_URL = '/pages/login/login'
+
+/** 计划列表页路径（计划不存在/已失效时跳转目标） */
+const PLANS_URL = '/pages/plans/plans'
 
 /**
  * 从错误响应体中取出可展示的提示文案。
@@ -45,6 +55,15 @@ function redirectToLogin() {
   // 已在登录页则不重复跳转，避免死循环
   if (current && current.route === 'pages/login/login') return
   uni.reLaunch({ url: LOGIN_URL })
+}
+
+/** 跳转到计划列表（用 reLaunch 清空页面栈，避免返回键回到已失效的计划页） */
+function redirectToPlans() {
+  const pages = getCurrentPages()
+  const current = pages.length ? pages[pages.length - 1] : null
+  // 已在计划列表则不重复跳转，避免死循环
+  if (current && current.route === 'pages/plans/plans') return
+  uni.reLaunch({ url: PLANS_URL })
 }
 
 /**
@@ -96,11 +115,23 @@ export function request(opt = {}) {
         }
 
         const message = pickMessage(body, statusCode)
+        // 404 且为「计划不存在」：计划可能已被删除或 ID 过期，回到计划列表，
+        // 避免用户停留在对已失效计划的页面上反复报错。
+        if (statusCode === 404 && message === '计划不存在' && !silent) {
+          uni.showToast({ title: message, icon: 'none' })
+          redirectToPlans()
+          reject({ statusCode, message, data: body })
+          return
+        }
         if (!silent) uni.showToast({ title: message, icon: 'none' })
         reject({ statusCode, message, data: body })
       },
       fail(err) {
-        if (!silent) uni.showToast({ title: '网络异常，请检查后端服务', icon: 'none' })
+        // 透出底层 errMsg（如 request:fail connect server timeout / CORS / DNS 等），
+        // 便于定位是网络、CORS 还是地址问题，而不是一律显示笼统文案。
+        const detail = (err && (err.errMsg || err.message)) || ''
+        if (!silent) uni.showToast({ title: '请求失败：' + detail, icon: 'none' })
+        console.error('[request] 请求失败', url, err)
         reject({ statusCode: 0, message: '网络异常，请检查后端服务', data: err })
       }
     })
@@ -109,5 +140,6 @@ export function request(opt = {}) {
 
 export const apiGet = (url, data, opt) => request(Object.assign({ url, method: 'GET', data }, opt))
 export const apiPost = (url, data, opt) => request(Object.assign({ url, method: 'POST', data }, opt))
+export const apiPut = (url, data, opt) => request(Object.assign({ url, method: 'PUT', data }, opt))
 export const apiPatch = (url, data, opt) => request(Object.assign({ url, method: 'PATCH', data }, opt))
 export const apiDel = (url, data, opt) => request(Object.assign({ url, method: 'DELETE', data }, opt))
