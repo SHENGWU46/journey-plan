@@ -5,21 +5,25 @@
 // 故把「token 的读写」下沉为这个无依赖模块，request.js 与 store 都只依赖它。
 //
 // 存储键：
-//   jp_token  — JWT access_token
-//   jp_user   — { id, username } 的 JSON 字符串
+//   jp_token   — JWT access_token
+//   jp_refresh — JWT refresh_token（用于无感续期）
+//   jp_user    — { id, username } 的 JSON 字符串
 
 const TOKEN_KEY = 'jp_token'
+const REFRESH_KEY = 'jp_refresh'
 const USER_KEY = 'jp_user'
 
 /**
  * 保存登录态
  * @param {string} token access_token
  * @param {{id: number, username: string}} user 用户信息
+ * @param {string} [refreshToken] refresh_token（登录/注册时一并写入）
  */
-export function saveSession(token, user) {
+export function saveSession(token, user, refreshToken) {
   try {
     uni.setStorageSync(TOKEN_KEY, token)
     uni.setStorageSync(USER_KEY, JSON.stringify(user || {}))
+    if (refreshToken != null) uni.setStorageSync(REFRESH_KEY, refreshToken)
   } catch (e) {
     console.error('保存登录态失败', e)
   }
@@ -55,6 +59,24 @@ export function setUser(user) {
   }
 }
 
+/** 读取 refresh_token；未登录返回空串 */
+export function getRefreshToken() {
+  try {
+    return uni.getStorageSync(REFRESH_KEY) || ''
+  } catch (e) {
+    return ''
+  }
+}
+
+/** 仅更新本地 access_token（refresh 续期成功后调用，不触动 user / refresh_token） */
+export function saveAccessToken(token) {
+  try {
+    if (token) uni.setStorageSync(TOKEN_KEY, token)
+  } catch (e) {
+    console.error('更新 access_token 失败', e)
+  }
+}
+
 /** 是否已登录（仅凭 token 是否存在判断，不校验有效期） */
 export function isLoggedIn() {
   return !!getToken()
@@ -64,6 +86,7 @@ export function isLoggedIn() {
 export function clearSession() {
   try {
     uni.removeStorageSync(TOKEN_KEY)
+    uni.removeStorageSync(REFRESH_KEY)
     uni.removeStorageSync(USER_KEY)
   } catch (e) {
     console.error('清除登录态失败', e)

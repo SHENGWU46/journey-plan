@@ -12,7 +12,7 @@
 //
 // 约定：页面与组件禁止直接调用 uni.request，一律走本模块。
 
-import { getToken, clearSession } from '@/utils/token.js'
+import { getToken, clearSession, getRefreshToken, saveAccessToken } from '@/utils/token.js'
 
 // 注意：后端仅监听 IPv4 的 127.0.0.1。浏览器解析 localhost 会优先尝试 IPv6(::1)，
 // 而后端未监听 IPv6，导致 XHR 连接 ::1 失败/挂起，表现为「连接服务器超时」。
@@ -77,6 +77,31 @@ function redirectToPlans() {
  * @param {boolean} [opt.auth] 默认 true，附加 Authorization 头；登录注册等接口传 false
  * @returns {Promise<Object>} 成功时 resolve 响应体；204 无内容时 resolve { success: true }
  */
+// 续期单飞：多个并发 401 只发一次 /auth/refresh，避免重复刷新
+let refreshPromise = null
+
+/**
+ * 用 refresh_token 换取新的 access_token（无感续期）。
+ * 仅作内部续期使用，故带 auth:false 且不触发 401 跳转、不弹错误。
+ * @returns {Promise<string>} 新的 access_token
+ */
+function refreshAccessToken() {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = (async () => {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) throw new Error('no refresh token')
+    const res = await apiPost(
+      '/auth/refresh',
+      { refresh_token: refreshToken },
+      { auth: false, noAuthRedirect: true, silent: true }
+    )
+    saveAccessToken(res.access_token)
+    return res.access_token
+  })()
+  refreshPromise.finally(() => { refreshPromise = null })
+  return refreshPromise
+}
+
 export function request(opt = {}) {
   const {
     url = '',
@@ -97,7 +122,7 @@ export function request(opt = {}) {
       method,
       data,
       header,
-      success(res) {
+      async success(res) {
         const statusCode = res.statusCode
         const body = res.data
 
@@ -106,8 +131,21 @@ export function request(opt = {}) {
           return resolve(body === '' || body == null ? { success: true } : body)
         }
 
-        // 401：token 缺失或失效（登录接口自身的 401 由 noAuthRedirect 排除）
+        // 401：token 缺失/失效。先尝试用 refresh_token 无感续期并重试一次原请求，
+        // 续期失败（refresh 也失效/缺失）才清登录态并跳登录页。
         if (statusCode === 401 && !noAuthRedirect) {
+          if (!opt._retried) {
+            opt._retried = true
+            try {
+              await refreshAccessToken()
+              // 续期成功：用新 token 重新发起原请求，并将其结果（成功或其它错误）直接
+              // 透传给本次调用方——避免把重试请求的 404 等非 401 错误误判为登录失效。
+              resolve(request(opt))
+              return
+            } catch (e) {
+              // 续期失败，落入下方登出逻辑
+            }
+          }
           clearSession()
           redirectToLogin()
           reject({ statusCode, message: '登录已失效，请重新登录', data: body, expired: true })

@@ -30,6 +30,9 @@
           </view>
         </view>
 
+        <!-- 天气精度提示：城市级预报，大范围目的地（如省份）仅供参考 -->
+        <text class="hint">天气为城市级预报；若目的地是省份等大范围区域，仅代表其行政中心附近，可能不准确，仅供参考。</text>
+
         <!-- 当天预算 / 游玩时间：并排，无默认值，可手填 -->
         <view class="grid2">
           <view class="field">
@@ -216,6 +219,7 @@ const tourTime = ref('')
 const dailyBudget = ref('')
 const recommendations = ref([]) // AI 推荐候选
 const selected = ref([])        // 已选入路线的景点（顺序即路线顺序）
+const manualCards = ref([])     // 手动添加的景点：独立持久池，移出路线后也不消失（满足「不加入也要保留」）
 
 // 手动添加景点（字段与 AI 推荐 Attraction 保持一致）
 const addVisible = ref(false)
@@ -228,11 +232,14 @@ const routeSummary = computed(() => {
   return '酒店出发 → ' + selected.value.map(s => s.name).join(' → ') + ' → 返回酒店'
 })
 
-// 上方卡片 = AI 推荐 ∪ 我的路线（按 name 去重），保证路线里每个景点都有对应卡片
+// 上方卡片 = AI 推荐 ∪ 手动候选 ∪ 我的路线（按 name 去重）；手动候选移出路线后仍在卡片列表，不会凭空消失
 const allCards = computed(() => {
   const list = []
   const seen = new Set()
   for (const a of recommendations.value) {
+    if (!seen.has(a.name)) { seen.add(a.name); list.push(a) }
+  }
+  for (const a of manualCards.value) {
     if (!seen.has(a.name)) { seen.add(a.name); list.push(a) }
   }
   for (const a of selected.value) {
@@ -268,9 +275,10 @@ function moveDown(i) {
 function removeAt(i) {
   selected.value = selected.value.filter((_, idx) => idx !== i)
 }
-// 从卡片列表彻底删除某张卡片：同时移出 AI 推荐池与已选路线（按 name 匹配）
+// 从卡片列表彻底删除某张卡片：同时移出 AI 推荐池、手动候选池与已选路线（按 name 匹配）
 function deleteCard(a) {
   recommendations.value = recommendations.value.filter(x => x.name !== a.name)
+  manualCards.value = manualCards.value.filter(x => x.name !== a.name)
   selected.value = selected.value.filter(x => x.name !== a.name)
 }
 
@@ -287,7 +295,9 @@ async function generate() {
     const res = await generateDailyPlans(planId.value, {
       date: date.value,
       tour_time: tourTime.value || undefined,
-      daily_budget: dailyBudget.value ? Number(dailyBudget.value) : undefined
+      daily_budget: dailyBudget.value ? Number(dailyBudget.value) : undefined,
+      // 换一批：把当前已展示的所有卡片名传给后端，后端会排除它们并检索不同候选
+      existing_attractions: allCards.value.map(x => x.name)
     })
     // AI 重新生成的卡片「追加」到已有卡片之后（按 name 去重，避免与已推荐/已加入的重复）
     const incoming = res.attractions || []
@@ -311,7 +321,12 @@ async function loadSaved() {
       weather.value = d.weather || ''
       tourTime.value = d.tour_time || ''
       dailyBudget.value = d.daily_budget != null ? String(d.daily_budget) : ''
-      selected.value = d.attractions || []
+      // 候选池优先取 candidate_cards（完整候选池，含未入路线的卡片）；
+      // 旧数据无该字段时回退到 attractions，保证兼容。
+      // 否则未入路线的卡片只存在于 selected，移出路线即整张消失。
+      const pool = (d.candidate_cards && d.candidate_cards.length) ? d.candidate_cards : (d.attractions || [])
+      recommendations.value = [...pool]
+      selected.value = [...(d.attractions || [])]
     }
   } catch (err) {
     console.error('[day-plan] 加载已保存计划失败', err)
@@ -326,7 +341,8 @@ async function save() {
       weather: weather.value,
       tour_time: tourTime.value || null,
       daily_budget: dailyBudget.value ? Number(dailyBudget.value) : null,
-      attractions: selected.value
+      attractions: selected.value,
+      candidate_cards: allCards.value
     })
     uni.showToast({ title: '已保存', icon: 'success' })
     setTimeout(() => uni.navigateBack(), 400)
@@ -353,18 +369,21 @@ function submitAdd() {
     addError.value = '请填写景点名称'
     return
   }
-  if (selected.value.some(x => x.name === name)) {
-    addError.value = '该景点已在路线中'
+  if (allCards.value.some(x => x.name === name)) {
+    addError.value = '该景点已存在'
     return
   }
   // 与 AI 推荐 Attraction 字段对齐：name/type/suggested_duration/budget_per_person/description
-  selected.value = [...selected.value, {
+  const card = {
     name,
     type: addForm.type.trim(),
     suggested_duration: Number(addForm.duration) || 0,
     budget_per_person: Math.round(Number(addForm.budget) || 0),
     description: addForm.description.trim()
-  }]
+  }
+  // 同时进入「手动候选池」与「路线」：从路线移出后仍在候选池，不会凭空消失
+  manualCards.value = [...manualCards.value, card]
+  selected.value = [...selected.value, card]
   closeAdd()
   uni.showToast({ title: '已添加', icon: 'success' })
 }

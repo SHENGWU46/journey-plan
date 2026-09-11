@@ -99,7 +99,7 @@ function submit() {
   register({ username: u, password: p, confirmPassword: c })
     .then(() => login({ username: u, password: p }))
     .then(res => {
-      saveSession(res.access_token, res.user)
+      saveSession(res.access_token, res.user, res.refresh_token)
       uni.showToast({ title: '注册成功', icon: 'success' })
       setTimeout(() => uni.reLaunch({ url: '/pages/plans/plans' }), 400)
     })

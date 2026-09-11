@@ -80,7 +80,7 @@ function submit() {
   errorMsg.value = ''
   login({ username: u, password: p })
     .then(res => {
-      saveSession(res.access_token, res.user)
+      saveSession(res.access_token, res.user, res.refresh_token)
       uni.showToast({ title: '登录成功', icon: 'success' })
       // reLaunch 清空页面栈，进入首页（tabBar 页用 switchTab）
       setTimeout(() => uni.reLaunch({ url: '/pages/plans/plans' }), 400)

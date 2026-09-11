@@ -158,8 +158,8 @@
             <text class="day-title">第 {{ d.index }} 天 · {{ d.date.slice(5) }}</text>
             <text class="day-sub">{{ daySummary(d) }}</text>
           </view>
-          <text class="day-badge" :class="{ 'day-badge--done': savedMap[d.index] }">
-            {{ savedMap[d.index] ? '已安排' : '待推荐' }}
+          <text class="day-badge" :class="{ 'day-badge--done': savedMap[d.index] && (savedMap[d.index].attractions || []).length > 0 }">
+            {{ savedMap[d.index] && (savedMap[d.index].attractions || []).length > 0 ? '已安排' : '待推荐' }}
           </text>
         </view>
         <view v-if="!dayList.length" class="day-empty">

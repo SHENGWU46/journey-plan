@@ -79,6 +79,8 @@ export function getPlan(id) {
  * 后端：POST /plans/{id}/days
  *
  * 入参：date 必填；tour_time / daily_budget 可选。
+ *      existing_attractions：已展示/已推荐的景点名数组（「换一批」时传入，
+ *      后端会排除这些景点并检索不同候选）；首次生成可不传。
  *      第一步填的目的地/往返时间/同行人数/总预算由服务端按 plan_id 从计划本体读取
  *      后注入 agent，不在此传递，避免客户端篡改计划级事实。
  *
@@ -86,7 +88,7 @@ export function getPlan(id) {
  *        budget_per_person, description }] }
  *
  * @param {number|string} id 计划 id
- * @param {{date: string, tour_time?: string, daily_budget?: number}} payload
+ * @param {{date: string, tour_time?: string, daily_budget?: number, existing_attractions?: string[]}} payload
  * @returns {Promise<Object>}
  */
 export function generateDailyPlans(id, payload) {
