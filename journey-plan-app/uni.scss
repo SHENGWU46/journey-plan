@@ -1,0 +1,119 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+
+/* 颜色变量 */
+
+/* 行为相关颜色 */
+$uni-color-primary: #007aff;
+$uni-color-success: #4cd964;
+$uni-color-warning: #f0ad4e;
+$uni-color-error: #dd524d;
+
+/* 文字基本颜色 */
+$uni-text-color:#333;//基本色
+$uni-text-color-inverse:#fff;//反色
+$uni-text-color-grey:#999;//辅助灰色，如加载更多的提示信息
+$uni-text-color-placeholder: #808080;
+$uni-text-color-disable:#c0c0c0;
+
+/* 背景颜色 */
+$uni-bg-color:#ffffff;
+$uni-bg-color-grey:#f8f8f8;
+$uni-bg-color-hover:#f1f1f1;//点击状态颜色
+$uni-bg-color-mask:rgba(0, 0, 0, 0.4);//遮罩颜色
+
+/* 边框颜色 */
+$uni-border-color:#c8c7cc;
+
+/* 尺寸变量 */
+
+/* 文字尺寸 */
+$uni-font-size-sm:12px;
+$uni-font-size-base:14px;
+$uni-font-size-lg:16px;
+
+/* 图片尺寸 */
+$uni-img-size-sm:20px;
+$uni-img-size-base:26px;
+$uni-img-size-lg:40px;
+
+/* Border Radius */
+$uni-border-radius-sm: 2px;
+$uni-border-radius-base: 3px;
+$uni-border-radius-lg: 6px;
+$uni-border-radius-circle: 50%;
+
+/* 水平间距 */
+$uni-spacing-row-sm: 5px;
+$uni-spacing-row-base: 10px;
+$uni-spacing-row-lg: 15px;
+
+/* 垂直间距 */
+$uni-spacing-col-sm: 4px;
+$uni-spacing-col-base: 8px;
+$uni-spacing-col-lg: 12px;
+
+/* 透明度 */
+$uni-opacity-disabled: 0.3; // 组件禁用态的透明度
+
+/* 文章场景相关 */
+$uni-color-title: #2C405A; // 文章标题颜色
+$uni-font-size-title:20px;
+$uni-color-subtitle: #555555; // 二级标题颜色
+$uni-font-size-subtitle:26px;
+$uni-color-paragraph: #3F536E; // 文章段落颜色
+$uni-font-size-paragraph:15px;
+
+/* ==========================================================================
+   Journey Plan 设计令牌（设计决策 5）
+   基准：docs/journey-plan-prototype.html v5（柠檬黄主题）
+   说明：本文件由 uni-app 自动注入所有 scss 块，页面 <style lang="scss"> 中可直接使用
+   下列变量，无需 @import。四态状态相关样式已按产品决策（2026-08-28）取消，
+   故此处不定义状态色。
+   ========================================================================== */
+
+/* 品牌色 */
+$jp-primary:   #FACC15; // 亮柠檬：主填充 / 渐变
+$jp-secondary: #84CC16; // 青柠：辅助与进度渐变
+$jp-accent:    #38BDF8; // 天蓝：强调
+
+/* 深色调（浅底上的文字/图标，保证对比度） */
+$jp-deep:      #A16207; // 深柠檬
+$jp-deep2:     #4D7C0F; // 深青柠
+$jp-deep3:     #0284C7; // 深天蓝
+
+/* 中性色 */
+$jp-bg:        #FFFBEB; // 页面背景
+$jp-fg:        #1C1917; // 主文字
+$jp-card:      #FFFFFF; // 卡片
+$jp-muted:     #FEF9C3; // 浅底块
+$jp-muted-fg:  #78716C; // 次要文字
+$jp-border:    #FEF3C7; // 边框
+
+/* 危险色（删除等破坏性操作） */
+$jp-danger:    #DC2626;
+
+/* 圆角 */
+$jp-radius:    28rpx;   // 卡片 / 大块
+$jp-radius-sm: 16rpx;   // 按钮 / 小标签
+$jp-radius-pill: 9999rpx; // 胶囊（搜索框、标签、进度条）
+
+/* 字体：标题用霞鹜文楷 Mono（等宽中文衬线，GB 屏幕版），回退 Poppins/系统；正文保持系统无衬线 */
+$jp-font-heading: 'LXGW WenKai Mono GB Screen', 'LXGW WenKai', 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$jp-font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+/* 柠檬主渐变（aurora 简化版：柠檬 → 青柠，用于封面与主按钮） */
+$jp-gradient-lemon: linear-gradient(135deg, #FACC15 0%, #FDE047 40%, #A3E635 100%);
+/* 进度条渐变（柠檬 → 青柠） */
+$jp-gradient-progress: linear-gradient(90deg, #FACC15, #84CC16);
