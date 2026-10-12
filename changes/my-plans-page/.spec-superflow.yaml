@@ -1,0 +1,46 @@
+# .spec-superflow.yaml — lightweight state machine
+# Derived data. Always rebuildable from artifacts. Lost/corrupt → fall back to content-level detection.
+
+# === Core state ===
+state: executing
+workflow: full
+revision: 2
+
+# === Hashes (fast staleness detection) ===
+artifacts_hash: sha256:9ac533b71c4b2e282916f0a1201801b088b26a2d749d25c5f192e7165dd0908f
+contract_hash: sha256:6451e97fa407ecc29efabd9928d5152cfda0ebc33b76af5e96a6f8089f673e3a
+
+# === Execution progress ===
+execution_mode: sdd
+execution_plan_hash: sha256:517411a8ea026ae9e9cbefee0eae9b343dac4513d435e177f071f064b7a0afa6
+execution_plan_revision: 2
+batches_completed: 0
+test_result: null
+spec_merged: false
+spec_publication_receipt: null
+
+# === Metadata ===
+change_name: my-plans-page
+last_transition: 2026-08-28T09:10:52.282Z
+last_transition_from: approved-for-build
+last_transition_to: executing
+
+# === Decision points ===
+dp_0_decisions: 变更名 my-plans-page；意图：实现我的计划页——计划列表展示(FR-PL-01)、状态筛选(FR-PL-02)、关键字搜索(FR-PL-03)、新建旅程入口(FR-PL-04)，一并处理3Tab底部导航(FR-NAV-01)；数据存储后端MySQL(开发期SQLite)；约束：遵循需求文档V1.2（状态判定3.2.2、筛选互斥单选、搜索防抖≥300ms、草稿仅全部可见、状态按日期派生）；相关优化：包含FR-NAV-01底部导航；沟通偏好：逐步确认；artifact_language=zh-CN；workflow_path=full；产品决策(DP-3, 2026-08-28)：状态系统全面取消——不做四态状态派生与状态筛选(FR-PL-02取消、偏离PRD 3.2.2)，列表仅区分草稿/非草稿；验收以列表/搜索/编辑/删除+草稿区分为准；流程简化决策(2026-08-28)：外层不建git仓库，review receipt 改为台账(progress.md)人工记录，每波独立审查报告照写（用户选择）
+dp_0_result: confirmed
+dp_0_confirmed: true
+dp_0_timestamp: 2026-08-28T04:36:56Z
+dp_1_result: null
+dp_1_timestamp: null
+dp_2_result: approved: 按原型v5修订版批准（含FR-PL-05改名/FR-PL-07删除、编辑按钮文本、盲读者7缺口修复）
+dp_2_timestamp: 2026-08-28T05:43:23Z
+dp_3_result: approved: 状态系统全面取消修订版契约批准（8任务3波次、completed字段语义、验收基准调整）
+dp_3_timestamp: 2026-08-28T05:56:38Z
+dp_4_result: sdd: plan revision 2; user-confirmed-revision; total_days 口径修正（含首尾，PRD场景一与决策9一致；spec示例7→8）
+dp_4_timestamp: 2026-08-28T09:11:53.891Z
+dp_5_result: null
+dp_5_timestamp: null
+dp_6_result: null
+dp_6_timestamp: null
+dp_7_result: null
+dp_7_timestamp: null

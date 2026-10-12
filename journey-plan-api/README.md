@@ -40,7 +40,7 @@ uvicorn main:app --reload --port 8000
 
 ## 接口契约
 
-以《Journey-Plan-需求分析文档.md》第 6 章接口需求为基准；前端调用见 `../journey-plan-app/api`。
+以《需求分析文档》（[`docs/requirements.md`](../docs/requirements.md)）第 6 章接口需求为基准；前端调用见 [`../journey-plan-app/api`](../journey-plan-app/api)。
 FastAPI 同时自动生成交互式文档：`/docs`（Swagger UI）与 `/redoc`，可直接在线调试。
 
 ### 通用约定

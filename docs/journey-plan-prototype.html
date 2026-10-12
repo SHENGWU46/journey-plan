@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journey Plan — 智能旅行计划 · 原型 v5（按需求文档）</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#FACC15', onprimary: '#1C1917',
+          secondary: '#84CC16', onsecondary: '#FFFFFF',
+          accent: '#38BDF8',
+          deep: '#A16207', deep2: '#4D7C0F', deep3: '#0284C7',
+          bg: '#FFFBEB', fg: '#1C1917',
+          card: '#FFFFFF', muted: '#FEF9C3', mutedfg: '#78716C',
+          bord: '#FEF3C7',
+        },
+        fontFamily: { heading: ['Poppins','sans-serif'], body: ['Open Sans','sans-serif'] }
+      }
+    }
+  }
+</script>
+<style>
+  :root{
+    --color-primary:#FACC15; --color-secondary:#84CC16; --color-accent:#38BDF8;
+    --color-deep:#A16207; --color-deep2:#4D7C0F; --color-deep3:#0284C7;
+    --color-bg:#FFFBEB; --color-fg:#1C1917; --color-card:#FFFFFF;
+    --color-muted:#FEF9C3; --color-mutedfg:#78716C; --color-border:#FEF3C7;
+  }
+  html,body{height:100%;}
+  body{font-family:'Open Sans',sans-serif;background:#E9E4DA;}
+  h1,h2,h3,h4,.font-heading{font-family:'Poppins',sans-serif;}
+  .phone-shell{
+    width:390px;height:844px;
+    background:linear-gradient(180deg,#FACC15 0%,#FACC15 16.66%,#F4F1EA 40%,#FFFFFF 100%);
+  }
+  .aurora{
+    color:#1C1917;
+    background:
+      radial-gradient(120% 90% at 15% 10%, rgba(250,204,21,.95) 0%, rgba(250,204,21,0) 55%),
+      radial-gradient(110% 80% at 90% 20%, rgba(132,204,22,.85) 0%, rgba(132,204,22,0) 50%),
+      radial-gradient(80% 70% at 60% 100%, rgba(56,189,248,.7) 0%, rgba(56,189,248,0) 60%),
+      linear-gradient(135deg,#FACC15 0%,#FDE047 40%,#A3E635 100%);
+    background-size:200% 200%;
+    animation:auroraShift 12s ease-in-out infinite;
+  }
+  @keyframes auroraShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  @media (prefers-reduced-motion: reduce){
+    .aurora{animation:none;background-size:100% 100%}
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  }
+  .scroll-y{overflow-y:auto;scrollbar-width:none}
+  .scroll-y::-webkit-scrollbar{display:none}
+  .tab-btn{transition:color .2s ease}
+  .nav-active{color:var(--color-deep)}
+  .nav-active .ic-wrap{background:rgba(250,204,21,.28)}
+  .chip{transition:all .18s ease}
+  .chip[data-on="true"]{background:var(--color-primary);color:#1C1917;border-color:var(--color-primary)}
+  .lift{transition:transform .2s ease,box-shadow .2s ease}
+  .lift:hover{transform:translateY(-2px);box-shadow:0 14px 30px -12px rgba(28,25,23,.22)}
+  .lift:active{transform:translateY(0)}
+  *:focus-visible{outline:2px solid var(--color-deep);outline-offset:2px}
+  /* ---- 新版页面布局：顶部 1/6 黄色 → 渐变浅灰白 ---- */
+  .page{display:none !important;flex-direction:column}
+  .page.active{display:flex !important;animation:fadeIn .28s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .page-bg{
+    position:absolute; inset:0; z-index:0;
+    background:linear-gradient(180deg,
+      #FACC15 0%,
+      #FACC15 16.66%,
+      #F4F1EA 40%,
+      #FFFFFF 100%);
+  }
+  .page-header{position:relative; z-index:10; color:#1C1917; flex-shrink:0}
+  .page-sheet{
+    position:relative; z-index:10;
+    background:#FFFFFF;
+    border-radius:28px 28px 0 0;
+    box-shadow:0 12px 30px -18px rgba(28,25,23,.28);
+    margin:14px 14px 0;
+    flex:1 1 auto; min-height:0;
+  }
+  .sheet-fade{background:linear-gradient(to top,#FFFFFF 70%,rgba(255,255,255,0) 100%)}
+  .home-indicator{width:134px;height:5px;border-radius:9999px;background:#1C1917;opacity:.85}
+  .step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;transition:all .25s ease}
+  .step-line{flex:1;height:2px;background:var(--color-border);transition:background .25s ease}
+  .day-item{transition:all .18s ease}
+  .day-item:active{transform:scale(.985)}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  .dot{animation:blink 1.2s infinite}
+  .dot:nth-child(2){animation-delay:.2s}
+  .dot:nth-child(3){animation-delay:.4s}
+</style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+<!-- Phone Simulator -->
+<div class="phone-shell rounded-[44px] shadow-2xl ring-[10px] ring-black/85 overflow-hidden relative flex flex-col">
+
+  <!-- Status Bar -->
+  <div class="flex items-center justify-between px-7 pt-3 pb-1 text-fg text-[13px] font-semibold select-none">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="1" fill="#1C1917"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1C1917"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1C1917"/><rect x="15" y="0.5" width="3" height="11.5" rx="1" fill="#1C1917"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 11.2a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z" fill="#1C1917"/><path d="M3.5 6.3a6.4 6.4 0 019 0" stroke="#1C1917" stroke-width="1.4" stroke-linecap="round"/><path d="M1 3.6a10.2 10.2 0 0114 0" stroke="#1C1917" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3" stroke="#1C1917" opacity=".4"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#1C1917"/><rect x="23.5" y="3.5" width="2" height="5" rx="1" fill="#1C1917" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <!-- Pages -->
+  <main class="flex-1 relative overflow-hidden">
+
+    <!-- ============ PAGE 1: 制定计划（多步） ============ -->
+    <section id="page-plan" class="page h-full relative">
+      <div class="page-bg"></div>
+
+      <!-- 标题区：位于黄色部分 -->
+      <header class="page-header px-6 pt-7 pb-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-black/55 text-xs font-medium tracking-wide" id="plan-step-hint">STEP 1 / 2</p>
+            <h1 class="text-2xl font-bold font-heading mt-0.5" id="plan-step-title">计划信息</h1>
+          </div>
+          <button class="w-10 h-10 rounded-full bg-black/10 backdrop-blur flex items-center justify-center hover:bg-black/20 transition" onclick="closePlan()" aria-label="返回计划列表">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-2 mt-4" id="stepper">
+          <div class="step-dot bg-[#1C1917] text-[#FACC15]" id="st-dot-1">1</div>
+          <div class="step-line" id="st-line-1"></div>
+          <div class="step-dot bg-black/15 text-black/60" id="st-dot-2">2</div>
+        </div>
+      </header>
+
+      <!-- 白色内容布局：叠在渐变背景之上，上左右有边距 -->
+      <div class="page-sheet overflow-y-auto scroll-y">
+        <!-- ===== STEP 1: 计划信息（FR-WZ-01~05） ===== -->
+        <div id="plan-step-1" class="px-5 py-5 space-y-5">
+          <div>
+            <label class="block text-xs font-semibold text-mutedfg mb-1.5">旅程名称</label>
+            <div class="flex items-center gap-2 bg-card border border-bord rounded-xl px-3.5 py-3 focus-within:border-primary transition">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              <input id="inp-name" type="text" class="flex-1 bg-transparent text-sm text-fg outline-none font-medium" aria-label="旅程名称" placeholder="例如：京都秋日漫游" maxlength="20">
+            </div>
+            <p class="text-[11px] text-mutedfg mt-1.5">2-20 个字符，必填</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-mutedfg mb-1.5">目的地</label>
+            <div class="flex items-center gap-2 bg-card border border-bord rounded-xl px-3.5 py-3 focus-within:border-primary transition">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <input id="inp-dest" type="text" value="日本 · 京都" class="flex-1 bg-transparent text-sm text-fg outline-none font-medium" aria-label="目的地" placeholder="想去哪里？">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-mutedfg mb-1.5">往返日期</label>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-card border border-bord rounded-xl px-3.5 py-2.5 flex items-center gap-2 focus-within:border-primary transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <input id="inp-start" type="date" value="2026-10-02" class="w-full bg-transparent text-sm text-fg outline-none font-medium" aria-label="出发日期">
+              </div>
+              <div class="bg-card border border-bord rounded-xl px-3.5 py-2.5 flex items-center gap-2 focus-within:border-primary transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <input id="inp-end" type="date" value="2026-10-09" class="w-full bg-transparent text-sm text-fg outline-none font-medium" aria-label="返回日期">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-mutedfg mb-1.5">同行人数</label>
+            <div class="bg-card border border-bord rounded-xl px-3.5 py-3 flex items-center justify-between">
+              <button class="w-8 h-8 rounded-full bg-muted text-mutedfg flex items-center justify-center hover:bg-bord transition" onclick="changePeople(-1)" aria-label="减少"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+              <span class="text-sm font-semibold text-fg" id="inp-people">2 人</span>
+              <button class="w-8 h-8 rounded-full bg-primary/10 text-deep flex items-center justify-center hover:bg-primary/20 transition" onclick="changePeople(1)" aria-label="增加"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+          </div>
+
+          <div class="sticky bottom-0 sheet-fade pt-2 pb-1">
+            <button class="w-full aurora text-[#1C1917] font-bold text-base py-3.5 rounded-2xl shadow-lg lift flex items-center justify-center gap-2" onclick="nextFromInfo()">
+              下一步：生成每日计划
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== STEP 2: 总计划封面 + 每日列表（FR-DY-01 / FR-WZ-06） ===== -->
+        <div id="plan-step-2" class="px-5 py-5 space-y-4" style="display:none">
+          <div class="aurora rounded-2xl p-5 relative overflow-hidden lift">
+            <p class="text-black/60 text-[11px] tracking-widest">JOURNEY PLAN · 总计划</p>
+            <h2 class="text-xl font-bold font-heading mt-1" id="cover-name">—</h2>
+            <div class="grid grid-cols-3 gap-2 mt-4">
+              <div class="bg-black/10 backdrop-blur rounded-xl px-2.5 py-2 text-center">
+                <p class="text-[10px] text-black/60">时间</p>
+                <p class="text-xs font-semibold mt-0.5" id="cover-dates">—</p>
+              </div>
+              <div class="bg-black/10 backdrop-blur rounded-xl px-2.5 py-2 text-center">
+                <p class="text-[10px] text-black/60">人数</p>
+                <p class="text-xs font-semibold mt-0.5" id="cover-people">—</p>
+              </div>
+              <div class="bg-black/10 backdrop-blur rounded-xl px-2.5 py-2 text-center">
+                <p class="text-[10px] text-black/60">总预算</p>
+                <p class="text-xs font-semibold mt-0.5" id="cover-budget">—</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button class="flex-1 bg-card border border-bord rounded-xl py-2.5 text-xs font-semibold text-mutedfg hover:border-primary hover:text-deep transition flex items-center justify-center gap-1.5" onclick="backToStep1()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              修改信息
+            </button>
+            <button class="flex-[2] aurora text-[#1C1917] rounded-xl py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 lift" onclick="aiGenerateAll()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg>
+              AI 一键推荐全部景点
+            </button>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-bold text-fg font-heading">每日计划</p>
+              <p class="text-[11px] text-mutedfg" id="day-progress">0 / 0 天已完成</p>
+            </div>
+            <div class="space-y-2.5" id="day-list"></div>
+          </div>
+
+          <div class="sticky bottom-0 sheet-fade pt-2 pb-1">
+            <button class="w-full aurora text-[#1C1917] font-bold text-sm py-3.5 rounded-2xl shadow-lg lift flex items-center justify-center gap-2" onclick="finishPlan()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+              计划完成
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== STEP 4: 单日详情（FR-DY-02~06） ===== -->
+        <div id="plan-step-4" class="px-5 py-5 space-y-4" style="display:none">
+          <div class="flex items-center gap-3">
+            <button class="w-9 h-9 rounded-full bg-card border border-bord flex items-center justify-center hover:border-primary transition" onclick="backToOverview()" aria-label="返回总览">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="flex-1">
+              <h2 class="text-lg font-bold font-heading text-fg" id="day-title">第 1 天</h2>
+              <p class="text-xs text-mutedfg" id="day-subtitle">—</p>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full" id="day-ai-badge">待推荐</span>
+          </div>
+
+          <!-- 可编辑概览：天气 / 预算 / 时间（FR-DY-03） -->
+          <div class="space-y-2">
+            <!-- 当天天气：AI 默认生成，独占一行，可直接手改 -->
+            <div class="bg-card rounded-xl border border-bord p-3">
+              <div class="flex items-center gap-3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4D7C0F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.3 1.5A3.5 3.5 0 006 19h11.5z"/></svg>
+                <p class="text-[11px] font-semibold text-mutedfg w-12 shrink-0">当天天气</p>
+                <input id="inp-day-weather" type="text" class="flex-1 bg-transparent text-sm text-fg outline-none font-medium focus:border-primary transition" aria-label="当天天气" placeholder="如：晴 26°C">
+                <span class="text-[9px] font-bold text-deep3 bg-accent/10 px-2 py-0.5 rounded-full shrink-0">AI</span>
+              </div>
+            </div>
+
+            <!-- 当天预算 / 游玩时间：位于天气下方，并排展示，无默认值，可手填 -->
+            <div class="grid grid-cols-2 gap-2">
+              <div class="bg-card rounded-xl border border-bord p-3">
+                <div class="flex items-center gap-2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5.5H9.5a3 3 0 000 6h5a3 3 0 010 6H6"/></svg>
+                  <p class="text-[10px] font-semibold text-mutedfg">当天预算</p>
+                </div>
+                <div class="flex items-center gap-1 mt-1.5">
+                  <span class="text-sm text-mutedfg">¥</span>
+                  <input id="inp-day-budget" type="number" min="0" step="50" class="w-full bg-transparent text-sm text-fg outline-none font-medium focus:border-primary transition" aria-label="当天预算" placeholder="自填">
+                </div>
+              </div>
+              <div class="bg-card rounded-xl border border-bord p-3">
+                <div class="flex items-center gap-2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                  <p class="text-[10px] font-semibold text-mutedfg">游玩时间</p>
+                </div>
+                <input id="inp-day-time" type="text" class="w-full bg-transparent text-sm text-fg outline-none font-medium focus:border-primary transition mt-1.5" aria-label="游玩时间" placeholder="自填">
+              </div>
+            </div>
+
+            <p class="text-[10px] text-mutedfg px-1">以上字段均可手动修改；天气默认由 AI 生成，修改后将以你的输入为准</p>
+          </div>
+
+          <!-- AI 推荐景点（FR-DY-04） -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-bold text-fg font-heading">AI 推荐景点</p>
+              <p class="text-[11px] text-mutedfg" id="reco-hint">点击卡片加入 / 取消</p>
+            </div>
+            <button id="btn-reco" class="w-full aurora text-[#1C1917] font-bold text-sm py-3.5 rounded-2xl shadow-lg lift flex items-center justify-center gap-2" onclick="generateRecos(currentDay, false, true)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg>
+              <span id="btn-reco-label">让 AI 推荐当天景点</span>
+            </button>
+            <div class="space-y-2.5 mt-2.5" id="reco-list"></div>
+          </div>
+
+          <!-- 我的路线（FR-DY-05/06） -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-bold text-fg font-heading">我的路线</p>
+              <p class="text-[11px] text-mutedfg" id="route-count">已选 0 个景点</p>
+            </div>
+            <div id="route-box" class="bg-card rounded-2xl border border-bord p-4">
+              <p class="text-xs text-mutedfg text-center leading-relaxed py-2">还没有选择景点<br>从上方 AI 推荐中挑选加入当天路线</p>
+            </div>
+            <p class="text-[10px] text-mutedfg mt-1.5 px-1">点击「↑ / ↓」调整游览顺序 · 时段与预算随选择实时汇总</p>
+          </div>
+
+          <div class="sticky bottom-0 sheet-fade pt-2 pb-1">
+            <button class="w-full bg-card border border-bord rounded-2xl py-3 text-sm font-semibold text-mutedfg hover:border-primary hover:text-deep transition" onclick="backToOverview()">返回总览</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 2: 我的计划 ============ -->
+    <section id="page-list" class="page active h-full relative">
+      <div class="page-bg"></div>
+
+      <!-- 标题区：位于黄色部分 -->
+      <header class="page-header px-6 pt-7 pb-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold font-heading text-fg">我的计划</h1>
+            <p class="text-sm text-black/55 mt-0.5" id="list-count">共 4 段旅程</p>
+          </div>
+          <button class="w-10 h-10 rounded-full bg-black/10 backdrop-blur flex items-center justify-center hover:bg-black/20 transition" onclick="alert('原型演示：搜索已接入下方输入框')" aria-label="搜索">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          </button>
+        </div>
+
+        <!-- 搜索（FR-PL-03） -->
+        <div class="flex items-center gap-2 bg-white/85 backdrop-blur border border-white/60 rounded-xl px-3.5 py-2.5 mt-4 focus-within:border-primary transition">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="inp-search" type="text" class="flex-1 bg-transparent text-sm text-fg outline-none" placeholder="搜索计划名称…" oninput="debouncedSearch()" aria-label="搜索计划">
+          <button class="text-mutedfg hover:text-deep transition" onclick="clearSearch()" aria-label="清空"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+
+        <!-- 筛选：仅区分草稿 -->
+        <div class="flex gap-2 mt-4 overflow-x-auto scroll-y">
+          <button class="chip text-xs font-semibold px-3.5 py-1.5 rounded-full border border-white/60 bg-white/85 backdrop-blur text-fg" data-filter="all" data-on="true" onclick="setFilter('all', this)">全部</button>
+          <button class="chip text-xs font-semibold px-3.5 py-1.5 rounded-full border border-white/60 bg-white/85 backdrop-blur text-fg" data-filter="draft" onclick="setFilter('draft', this)">草稿</button>
+        </div>
+      </header>
+
+      <!-- 白色内容布局：叠在渐变背景之上，上左右有边距 -->
+      <div class="page-sheet overflow-y-auto scroll-y">
+        <div class="p-4 space-y-4" id="plan-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 3: 旅行助手 ============ -->
+    <section id="page-ai" class="page h-full relative">
+      <div class="page-bg"></div>
+
+      <!-- 标题区：位于黄色部分 -->
+      <header class="page-header px-6 pt-7 pb-3">
+        <h1 class="text-2xl font-bold font-heading mt-0.5">旅行助手</h1>
+        <p class="text-black/70 text-sm mt-2 max-w-[280px] leading-relaxed">结合你的旅行计划给出针对性建议，也可以回答日常旅游问题。</p>
+      </header>
+
+      <!-- 白色内容布局：叠在渐变背景之上，上左右有边距 -->
+      <div class="page-sheet overflow-hidden flex flex-col">
+        <div id="ai-chat" class="flex-1 px-4 py-4 space-y-3 overflow-y-auto scroll-y"></div>
+
+        <div class="px-4 pb-3 pt-2 sheet-fade">
+          <div class="flex items-center gap-2 bg-card border border-bord rounded-2xl pl-4 pr-1.5 py-1.5 focus-within:border-primary transition">
+            <input id="ai-input" type="text" class="flex-1 bg-transparent text-sm text-fg outline-none py-1.5" placeholder="问旅行助手任何问题…" onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="w-9 h-9 rounded-xl aurora text-[#1C1917] flex items-center justify-center lift" onclick="sendMsg()" aria-label="发送">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+          <p class="text-center text-[10px] text-mutedfg mt-1.5">AI 生成内容仅供参考，出行前请以官方信息为准</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 4: 我的 ============ -->
+    <section id="page-me" class="page h-full relative">
+      <div class="page-bg"></div>
+
+      <!-- 标题区：位于黄色部分 -->
+      <header class="page-header px-6 pt-7 pb-3 flex items-center justify-between">
+        <h1 class="text-2xl font-bold font-heading">个人中心</h1>
+        <button class="w-10 h-10 rounded-full bg-black/10 backdrop-blur flex items-center justify-center hover:bg-black/20 transition" onclick="alert('原型演示：设置')" aria-label="设置">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </header>
+
+      <!-- 白色内容布局：叠在渐变背景之上，上左右有边距 -->
+      <div class="page-sheet overflow-y-auto scroll-y px-4 py-5 space-y-5">
+        <div class="bg-card rounded-2xl border border-bord shadow-sm px-4 py-4">
+          <div class="flex items-center gap-4">
+            <button class="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center text-2xl font-bold font-heading text-deep hover:bg-primary/20 transition" onclick="alert('原型演示：选择新头像（相册/拍照）')" aria-label="设置头像">林</button>
+            <div class="flex-1 text-left">
+              <h2 class="text-xl font-bold font-heading text-fg">林小旅</h2>
+              <p class="text-sm text-mutedfg">资深旅人 · Lv.7</p>
+            </div>
+            <button class="text-xs font-bold bg-muted px-3 py-1.5 rounded-full hover:bg-bord transition" onclick="alert('原型演示：修改昵称')">编辑</button>
+          </div>
+          <div class="grid grid-cols-3 divide-x divide-bord mt-4 pt-4 border-t border-bord">
+            <div class="text-center"><p class="text-xl font-bold text-deep font-heading">4</p><p class="text-[11px] text-mutedfg mt-0.5">已行旅程</p></div>
+            <div class="text-center"><p class="text-xl font-bold text-deep2 font-heading">11</p><p class="text-[11px] text-mutedfg mt-0.5">抵达城市</p></div>
+            <div class="text-center"><p class="text-xl font-bold text-deep3 font-heading">23</p><p class="text-[11px] text-mutedfg mt-0.5">旅行天数</p></div>
+          </div>
+        </div>
+
+        <div class="bg-card rounded-2xl border border-bord overflow-hidden">
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：旅行偏好')">
+            <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9M14 17H5M17 17a3 3 0 003-3M7 7a3 3 0 00-3 3"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">旅行偏好</span>
+            <span class="text-xs text-mutedfg">文化 · 自然</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="h-px bg-bord mx-4"></div>
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：通知提醒')">
+            <div class="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D7C0F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">通知提醒</span>
+            <span class="text-xs text-deep2 font-medium">开启</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="h-px bg-bord mx-4"></div>
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：语言设置')">
+            <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">语言</span>
+            <span class="text-xs text-mutedfg">简体中文</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="bg-card rounded-2xl border border-bord overflow-hidden">
+          <!-- 修改密码（FR-ME-03） -->
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：验证当前密码后设置新密码（≥8 位含字母+数字）')">
+            <div class="w-9 h-9 rounded-lg bg-muted flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">修改密码</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="h-px bg-bord mx-4"></div>
+          <!-- 切换账号（FR-ME-04） -->
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：返回登录页，切换其他账号')">
+            <div class="w-9 h-9 rounded-lg bg-muted flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">切换账号</span>
+            <span class="text-xs text-mutedfg">手机号登录</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="h-px bg-bord mx-4"></div>
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：帮助与反馈')">
+            <div class="w-9 h-9 rounded-lg bg-muted flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">帮助与反馈</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="h-px bg-bord mx-4"></div>
+          <button class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition" onclick="alert('原型演示：关于 Journey Plan')">
+            <div class="w-9 h-9 rounded-lg bg-muted flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div>
+            <span class="flex-1 text-left text-sm font-medium text-fg">关于</span>
+            <span class="text-xs text-mutedfg">v1.0.0</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <!-- 退出登录（FR-ME-05） -->
+        <button class="w-full bg-card border border-bord rounded-2xl py-3.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition" onclick="if(confirm('确认退出当前账号？')){alert('原型演示：已退出登录，跳转登录页')}">退出登录</button>
+        <p class="text-center text-[11px] text-mutedfg">Journey Plan · 让每段旅程都被用心安排</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation (3 Tabs) -->
+  <nav class="bg-card border-t border-bord px-2 pt-2 pb-1.5 flex items-center justify-around relative">
+    <button class="tab-btn nav-active flex flex-col items-center gap-0.5 px-5 py-1 rounded-xl" onclick="switchTab('list')" data-tab="list">
+      <span class="ic-wrap w-9 h-9 rounded-xl flex items-center justify-center transition">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      </span>
+      <span class="text-[11px] font-semibold">我的计划</span>
+    </button>
+    <button class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1 rounded-xl text-mutedfg" onclick="switchTab('ai')" data-tab="ai">
+      <span class="ic-wrap w-9 h-9 rounded-xl flex items-center justify-center transition">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+      </span>
+      <span class="text-[11px] font-semibold">旅行助手</span>
+    </button>
+    <button class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1 rounded-xl text-mutedfg" onclick="switchTab('me')" data-tab="me">
+      <span class="ic-wrap w-9 h-9 rounded-xl flex items-center justify-center transition">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <span class="text-[11px] font-semibold">个人中心</span>
+    </button>
+  </nav>
+  <div class="flex justify-center pb-2 bg-card"><div class="home-indicator"></div></div>
+</div>
+
+<script>
+/* ============ 全局状态 ============ */
+var people = 2;
+var curFilter = 'all', curKeyword = '';
+var currentDay = 0;
+var tripState = null;   // 制定/查看中的总计划 {name,dest,start,end,people,days,editingId}
+var tripName = '';      // STEP1 命名
+var step2Recos = null;  // STEP2 生成的候选卡片
+var step2Selected = []; // STEP2 勾选
+
+/* 演示用模拟数据池（真实版将接入 AI 推荐服务） */
+var RECOS_POOL = [
+  [
+    {name:'清水寺',tag:'古刹',dur:2,cost:60,desc:'悬空舞台名刹，秋季红叶绝景，建议早到避开人流'},
+    {name:'三年坂·二年坂',tag:'老街',dur:1.5,cost:0,desc:'石板坡道古街，和风小店与抹茶甜点'},
+    {name:'八坂神社',tag:'神社',dur:1,cost:0,desc:'朱红灯笼舞殿，祇园门户，夜景出色'},
+    {name:'祇园花见小路',tag:'街区',dur:1.5,cost:0,desc:'艺伎区古街，傍晚灯笼亮起最有氛围'},
+    {name:'京都国立博物馆',tag:'博物馆',dur:2,cost:70,desc:'雨天备选首选，馆藏国宝级文物'}
+  ],
+  [
+    {name:'伏见稻荷大社',tag:'神社',dur:2.5,cost:0,desc:'千本鸟居震撼，清晨 7 点前人最少'},
+    {name:'东福寺',tag:'古刹',dur:1.5,cost:50,desc:'通天桥赏枫名所，秋季限定景观'},
+    {name:'三十三间堂',tag:'寺庙',dur:1,cost:60,desc:'1001 尊千手观音像，室内参观不怕雨'},
+    {name:'伏见酒藏之旅',tag:'体验',dur:2,cost:120,desc:'月桂冠大仓纪念馆等酒藏巡礼，含试饮'},
+    {name:'京都站拉面小路',tag:'美食',dur:1,cost:100,desc:'10 层拉面名店聚集，晚餐好去处'}
+  ],
+  [
+    {name:'岚山竹林小径',tag:'自然',dur:1,cost:0,desc:'竹林幽径，清晨与黄昏最美'},
+    {name:'天龙寺',tag:'古刹',dur:1.5,cost:65,desc:'世界遗产，曹源池庭园四季皆景'},
+    {name:'岚山小火车',tag:'体验',dur:1,cost:90,desc:'保津川峡谷观光小火车，建议提前订票'},
+    {name:'渡月桥',tag:'地标',dur:0.5,cost:0,desc:'岚山象征，桂川河畔散步'},
+    {name:'野宫神社',tag:'神社',dur:0.5,cost:0,desc:'源氏物语舞台之一，黑木鸟居'}
+  ],
+  [
+    {name:'金阁寺',tag:'古刹',dur:1,cost:45,desc:'金箔楼阁倒映镜湖池，上午光线最佳'},
+    {name:'龙安寺',tag:'古刹',dur:1,cost:60,desc:'枯山水石庭代表作，静心之地'},
+    {name:'二条城',tag:'历史',dur:2,cost:90,desc:'德川幕府居所，二之丸御殿值得细看'},
+    {name:'北野天满宫',tag:'神社',dur:1,cost:0,desc:'学问之神，梅苑与御守护佑'},
+    {name:'仁和寺',tag:'古刹',dur:1,cost:0,desc:'御室樱名所，秋季红叶也很出色'}
+  ],
+  [
+    {name:'锦市场',tag:'美食街',dur:1.5,cost:150,desc:'京都的厨房，边走边吃 130 家老铺'},
+    {name:'新京极商店街',tag:'购物',dur:1.5,cost:200,desc:'百年商店街，药妆伴手礼一站购齐'},
+    {name:'鸭川河岸散步',tag:'自然',dur:1,cost:0,desc:'河畔慢行，夏天有川床与跳乌龟'},
+    {name:'京都塔',tag:'观景',dur:1,cost:50,desc:'市内制高点，俯瞰盆地全景'},
+    {name:'先斗町',tag:'街区',dur:1,cost:0,desc:'窄巷灯笼餐饮街，晚餐氛围极佳'}
+  ],
+  [
+    {name:'宇治平等院',tag:'古刹',dur:1.5,cost:60,desc:'十日元硬币上的凤凰堂，世界遗产'},
+    {name:'中村藤吉本店',tag:'甜品',dur:1,cost:80,desc:'百年老铺抹茶甜品，生茶果冻必点'},
+    {name:'源氏物语博物馆',tag:'博物馆',dur:1,cost:65,desc:'平安王朝风情展陈，雨天好去处'},
+    {name:'宇治茶道体验',tag:'体验',dur:1.5,cost:180,desc:'对凤庵茶道体验，需提前预约'},
+    {name:'宇治神社·兴圣寺',tag:'神社',dur:1,cost:0,desc:'琴坂参道与竹林，游客稀少'}
+  ],
+  [
+    {name:'哲学之道',tag:'步道',dur:1,cost:0,desc:'2 公里水渠小径，春樱秋枫名所'},
+    {name:'银阁寺',tag:'古刹',dur:1,cost:55,desc:'东山文化的代表，枯山水与银沙滩'},
+    {name:'南禅寺',tag:'古刹',dur:1.5,cost:60,desc:'琵琶湖疏水水路阁，拍照圣地'},
+    {name:'平安神宫',tag:'神社',dur:1,cost:60,desc:'朱红大鸟居与回游式庭园'},
+    {name:'永观堂',tag:'古刹',dur:1,cost:65,desc:'红叶季京都人气第一的寺院'}
+  ]
+];
+var WEATHER_POOL = ['晴 26°C','多云 24°C','晴转多云 25°C','小雨 21°C','阴 22°C'];
+
+/* 演示计划数据（真实版来自本地存储） */
+var PLANS = [
+  {id:1, name:'京都秋日漫游', dest:'日本 · 京都', start:'2026-10-02', end:'2026-10-09', people:2, finished:true, budget:17400, daysDone:5, daysTotal:7},
+  {id:2, name:'大理环海慢游', dest:'云南 · 大理', start:'2026-08-15', end:'2026-08-19', people:4, finished:true, budget:18400, daysDone:3, daysTotal:5},
+  {id:3, name:'北海道雪国之约', dest:'日本 · 北海道', start:'2026-12-20', end:'2026-12-25', people:2, finished:false, budget:0, daysDone:0, daysTotal:6},
+  {id:4, name:'厦门文艺周末', dest:'福建 · 厦门', start:'2026-05-10', end:'2026-05-12', people:2, finished:true, budget:6800, daysDone:3, daysTotal:3}
+];
+
+function fmtDate(d){
+  var dt = new Date(d+'T00:00:00');
+  var mm = ('0'+(dt.getMonth()+1)).slice(-2), dd = ('0'+dt.getDate()).slice(-2);
+  var wd = ['周日','周一','周二','周三','周四','周五','周六'][dt.getDay()];
+  return { short: mm+'.'+dd, full: mm+'月'+dd+'日', week: wd };
+}
+function dayCount(s,e){ return Math.round((new Date(e+'T00:00:00') - new Date(s+'T00:00:00'))/86400000) + 1; }
+function toISO(d){ return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ============ Tab 切换 ============ */
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  var map = {plan:'page-plan', list:'page-list', ai:'page-ai', me:'page-me'};
+  var el = document.getElementById(map[name]);
+  el.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    var on = b.dataset.tab === name;
+    b.classList.toggle('nav-active', on);
+    b.classList.toggle('text-mutedfg', !on);
+  });
+  var sh = el.querySelector('.page-sheet');
+  if(sh) sh.scrollTop = 0;
+  if(name==='list') renderPlanList();
+  if(name==='ai' && document.getElementById('ai-chat').children.length===0) seedChat();
+}
+
+/* ============ 我的计划：搜索 / 筛选 / 列表（FR-PL-01~03） ============ */
+var searchTimer = null;
+function debouncedSearch(){ clearTimeout(searchTimer); searchTimer = setTimeout(renderPlanList, 300); }
+function clearSearch(){ document.getElementById('inp-search').value=''; renderPlanList(); }
+function setFilter(f, btn){
+  curFilter = f;
+  document.querySelectorAll('.chip').forEach(function(c){ c.dataset.on = c.dataset.on==='true' ? 'false' : 'false'; });
+  document.querySelectorAll('.chip[data-filter]').forEach(function(c){ c.dataset.on = c.dataset.filter===f ? 'true' : 'false'; });
+  renderPlanList();
+}
+function planStatus(p){
+  return p.finished ? 'active' : 'draft';
+}
+var STATUS_META = {
+  draft:  {label:'草稿', cls:'text-deep3 bg-accent/10'},
+  active: {label:'',     cls:''}
+};
+function coverStyle(){
+  return 'background:linear-gradient(135deg,#FACC15 0%,#FDE047 55%,#84CC16 100%)';
+}
+function renderPlanList(){
+  var kw = (document.getElementById('inp-search').value||'').trim().toLowerCase();
+  var list = document.getElementById('plan-list');
+  list.innerHTML = '';
+  var shown = 0;
+  PLANS.forEach(function(p){
+    var st = planStatus(p);
+    if(curFilter==='draft' && st!=='draft') return;
+    if(kw && p.name.toLowerCase().indexOf(kw)<0) return;
+    shown++;
+    var meta = STATUS_META[st];
+    var ds = fmtDate(p.start), de = fmtDate(p.end);
+    var el = document.createElement('div');
+    el.className = 'bg-card rounded-2xl border overflow-hidden lift cursor-pointer ' + (st==='draft' ? 'border-dashed border-bord' : 'border-bord');
+    el.onclick = function(){ openPlan(p.id); };
+    var head = '';
+    if(st==='draft'){
+      head = '<div class="p-4 flex items-start gap-3">' +
+        '<div class="w-11 h-11 rounded-xl bg-muted flex items-center justify-center shrink-0">' +
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>' +
+        '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="flex items-center justify-between gap-2">' +
+            '<h3 class="font-bold text-fg font-heading truncate">' + esc(p.name) + '</h3>' +
+            '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ' + meta.cls + '">' + meta.label + '</span>' +
+          '</div>' +
+          '<p class="text-xs text-mutedfg mt-0.5">' + ds.short + ' – ' + de.short + ' · ' + p.daysTotal + ' 天 · ' + p.people + ' 人</p>' +
+          '<p class="text-[11px] text-mutedfg mt-2">已完成命名与基本信息，可继续生成每日计划</p>' +
+        '</div>' +
+      '</div>';
+    } else {
+      head = '<div class="h-20 relative" style="' + coverStyle() + '">' +
+        '<div class="absolute inset-0 flex items-center justify-center text-black/70">' +
+          '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+        '</div>' +
+        '<span class="absolute top-2.5 left-3 text-[10px] font-bold text-[#1C1917] bg-black/10 backdrop-blur px-2.5 py-1 rounded-full">' + ds.short + ' – ' + de.short + '</span>' +
+      '</div>';
+    }
+    var body = '';
+    if(st!=='draft'){
+      body =
+        '<div class="p-4">' +
+          '<h3 class="font-bold text-fg font-heading">' + esc(p.name) + '</h3>' +
+          '<p class="text-xs text-mutedfg mt-0.5">' + ds.short + ' – ' + de.short + ' · ' + p.daysTotal + ' 天 · ' + p.people + ' 人 · 总预算 ¥' + (p.budget||0).toLocaleString() + '</p>' +
+          '<div class="mt-3 h-1.5 rounded-full bg-muted overflow-hidden"><div class="h-full rounded-full" style="width:' + Math.round(p.daysDone/p.daysTotal*100) + '%;background:linear-gradient(90deg,#FACC15,#84CC16)"></div></div>' +
+          '<p class="text-[10px] text-mutedfg mt-1.5">每日计划已生成 ' + p.daysDone + ' / ' + p.daysTotal + '</p>' +
+          '<div class="flex items-center gap-2 mt-3">' +
+            '<button class="flex-1 text-[11px] font-semibold text-mutedfg border border-bord rounded-lg py-2 hover:border-primary hover:text-deep transition" onclick="event.stopPropagation();renamePlan(' + p.id + ')">编辑</button>' +
+            '<button class="flex-1 text-[11px] font-semibold text-red-600 border border-bord rounded-lg py-2 hover:bg-red-50 transition" onclick="event.stopPropagation();deletePlan(' + p.id + ')">删除</button>' +
+          '</div>' +
+        '</div>';
+    } else {
+      body =
+        '<div class="p-4 pt-0">' +
+          '<div class="flex items-center gap-2">' +
+            '<button class="flex-1 text-[11px] font-semibold text-mutedfg border border-bord rounded-lg py-2 hover:border-primary hover:text-deep transition" onclick="event.stopPropagation();renamePlan(' + p.id + ')">编辑</button>' +
+            '<button class="flex-1 text-[11px] font-semibold text-red-600 border border-bord rounded-lg py-2 hover:bg-red-50 transition" onclick="event.stopPropagation();deletePlan(' + p.id + ')">删除</button>' +
+          '</div>' +
+        '</div>';
+    }
+    el.innerHTML = head + body;
+    list.appendChild(el);
+  });
+  if(shown===0){
+    list.innerHTML = '<div class="bg-card rounded-2xl border border-dashed border-bord p-8 text-center">' +
+      '<p class="text-sm font-semibold text-fg">没有找到匹配的计划</p>' +
+      '<p class="text-xs text-mutedfg mt-1">试试其他关键字，或新建一段旅程</p>' +
+      '<button class="mt-4 aurora text-[#1C1917] text-sm font-bold rounded-2xl px-6 py-2.5 lift" onclick="newPlan()">＋ 新建一段旅程</button>' +
+    '</div>';
+  }
+  document.getElementById('list-count').textContent = '共 ' + PLANS.length + ' 段旅程';
+  var nb = document.createElement('button');
+  nb.className = 'w-full border-2 border-dashed border-bord rounded-2xl py-4 text-mutedfg hover:border-primary hover:text-deep transition flex items-center justify-center gap-2 text-sm font-medium';
+  nb.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>新建一段旅程';
+  nb.onclick = newPlan;
+  list.appendChild(nb);
+}
+
+/* 计划管理（FR-PL-05~07） */
+function renamePlan(id){
+  var p = PLANS.find(function(x){return x.id===id;});
+  var v = prompt('修改计划名称（2-20 字符）', p.name);
+  if(v && v.trim()){ p.name = v.trim().slice(0,20); renderPlanList(); }
+}
+function deletePlan(id){
+  if(confirm('删除后不可恢复，确认删除该计划？')){   // MVP 物理删除 + 二次确认
+    PLANS = PLANS.filter(function(x){return x.id!==id;});
+    renderPlanList();
+  }
+}
+
+/* ============ 制定计划：步骤控制 ============ */
+function showStep(n){
+  document.getElementById('plan-step-1').style.display = n===1 ? 'block' : 'none';
+  document.getElementById('plan-step-2').style.display = n===2 ? 'block' : 'none';
+  document.getElementById('plan-step-4').style.display = n===4 ? 'block' : 'none';
+  var titles = {1:['STEP 1 / 2','计划信息'],2:['STEP 2 / 2','每日计划'],4:['STEP 2 / 2','每日计划']};
+  document.getElementById('plan-step-hint').textContent = titles[n][0];
+  document.getElementById('plan-step-title').textContent = titles[n][1];
+  [1,2].forEach(function(i){
+    var d = document.getElementById('st-dot-'+i);
+    d.classList.toggle('bg-[#1C1917]', i<=n);
+    d.classList.toggle('text-[#FACC15]', i<=n);
+    d.classList.toggle('bg-black/15', i>n);
+    d.classList.toggle('text-black/60', i>n);
+  });
+  document.getElementById('st-line-1').style.background = n>=2 ? '#1C1917' : '';
+  var sheet = document.querySelector('#page-plan .page-sheet');
+  if(sheet) sheet.scrollTop = 0;
+}
+
+function changePeople(d){
+  people = Math.min(10, Math.max(1, people + d));
+  document.getElementById('inp-people').textContent = people + ' 人';
+}
+
+/* 流程入口/退出 */
+function newPlan(){
+  step2Recos = null; step2Selected = [];
+  document.getElementById('inp-name').value = '';
+  showStep(1);
+  switchTab('plan');
+}
+function closePlan(){
+  // 中途退出：有命名/基本信息则保存为草稿（文档：草稿保留可继续编辑）
+  var name = (document.getElementById('inp-name').value||'').trim();
+  var dest = (document.getElementById('inp-dest').value||'').trim();
+  if(name || dest){
+    var s = document.getElementById('inp-start').value, e = document.getElementById('inp-end').value;
+    var days = (s && e && e>=s) ? dayCount(s,e) : 0;
+    PLANS.unshift({id:Date.now(), name:name||'未命名旅程', dest:dest||'待定', start:s||'2026-10-02', end:e||'2026-10-09', people:people, finished:false, budget:0, daysDone:0, daysTotal:days||7});
+    renderPlanList();
+  }
+  switchTab('list');
+}
+
+/* STEP1 → STEP2：填写计划信息（FR-WZ-01~05） */
+function nextFromInfo(){
+  var name = (document.getElementById('inp-name').value||'').trim();
+  if(name.length < 2){ alert('请为计划起一个名字（2-20 字符）'); return; }
+  var dest = (document.getElementById('inp-dest').value||'').trim();
+  if(!dest){ alert('请填写目的地'); return; }
+  var s = document.getElementById('inp-start').value, e = document.getElementById('inp-end').value;
+  if(!s || !e || e < s){ alert('请检查往返日期（返回日期需不早于出发日期）'); return; }
+  if(dayCount(s,e) > 14){ alert('原型演示：最长支持 14 天行程'); return; }
+  tripName = name;
+  createPlan();
+}
+function backToStep1(){ showStep(1); }
+
+/* STEP2 的 AI 推荐在进入每日计划后，通过「AI 一键推荐全部景点」进行（见 aiGenerateAll / generateRecos） */
+function createPlan(){
+  var dest = (document.getElementById('inp-dest').value||'').trim() || '未命名目的地';
+  var s = document.getElementById('inp-start').value;
+  var e = document.getElementById('inp-end').value;
+  var days = dayCount(s, e);
+  var arr = [];
+  for(var i=0;i<days;i++){
+    var d = new Date(s+'T00:00:00'); d.setDate(d.getDate()+i);
+    arr.push({ date: toISO(d), recos:null, selected:[], recoDone:false, weather:'', budget:0, time:'', route:'', spots:'' });
+  }
+  tripState = { name: tripName, dest: dest, people: people, start: s, end: e, days: arr, editingId: null };
+  renderCover();
+  renderDays();
+  showStep(2);
+}
+
+function renderCover(){
+  var t = tripState;
+  var ds = fmtDate(t.start), de = fmtDate(t.end);
+  var n = t.days.length;
+  document.getElementById('cover-name').textContent = t.name + ' · ' + n + ' 天' + (n-1) + ' 晚';
+  document.getElementById('cover-dates').textContent = ds.short + ' – ' + de.short;
+  document.getElementById('cover-people').textContent = t.people + ' 人';
+  var sum = t.days.reduce(function(a,d){return a+d.budget},0);
+  document.getElementById('cover-budget').textContent = sum>0 ? '¥' + sum.toLocaleString() : '待汇总';
+}
+
+function renderDays(){
+  var t = tripState;
+  var list = document.getElementById('day-list');
+  list.innerHTML = '';
+  var done = 0;
+  t.days.forEach(function(d, i){
+    if(d.selected.length > 0) done++;
+    var ds = fmtDate(d.date);
+    var sub, badgeTxt, badgeCls, squareCls;
+    if(d.selected.length > 0){
+      sub = d.spots + ' · ' + (d.time||'');
+      badgeTxt = '已选 ' + d.selected.length + ' 景点';
+      badgeCls = 'text-deep2 bg-secondary/10';
+      squareCls = 'aurora';
+    } else if(d.recoDone){
+      sub = 'AI 已推荐 ' + d.recos.length + ' 个景点 · 点击挑选';
+      badgeTxt = '待选择';
+      badgeCls = 'text-deep3 bg-accent/10';
+      squareCls = 'bg-secondary/10 text-deep2';
+    } else {
+      sub = '点击进入，让 AI 推荐景点';
+      badgeTxt = '待推荐';
+      badgeCls = 'text-deep3 bg-accent/10';
+      squareCls = 'bg-muted text-mutedfg';
+    }
+    var el = document.createElement('button');
+    el.className = 'day-item w-full bg-card rounded-2xl border border-bord p-3.5 flex items-center gap-3 text-left cursor-pointer hover:border-primary transition';
+    el.onclick = function(){ openDay(i); };
+    el.innerHTML =
+      '<div class="w-12 h-12 rounded-xl shrink-0 flex flex-col items-center justify-center ' + squareCls + '">' +
+        '<span class="text-[9px] font-semibold leading-none">DAY</span>' +
+        '<span class="text-base font-bold font-heading leading-tight">' + (i+1) + '</span>' +
+      '</div>' +
+      '<div class="flex-1 min-w-0">' +
+        '<p class="text-sm font-semibold text-fg truncate">' + ds.full + ' ' + ds.week + '</p>' +
+        '<p class="text-[11px] text-mutedfg mt-0.5 truncate">' + sub + '</p>' +
+      '</div>' +
+      '<div class="text-right shrink-0">' +
+        '<p class="text-xs font-bold ' + (d.budget>0 ? 'text-fg' : 'text-mutedfg/60') + '">' + (d.budget>0 ? '¥'+d.budget.toLocaleString() : '待汇总') + '</p>' +
+        '<span class="inline-block mt-1 text-[9px] font-bold ' + badgeCls + ' px-2 py-0.5 rounded-full">' + badgeTxt + '</span>' +
+      '</div>';
+    list.appendChild(el);
+  });
+  document.getElementById('day-progress').textContent = done + ' / ' + t.days.length + ' 天已完成';
+}
+
+/* ============ 单日详情（FR-DY-02~06） ============ */
+function openDay(i){
+  currentDay = i;
+  var d = tripState.days[i];
+  var ds = fmtDate(d.date);
+  document.getElementById('day-title').textContent = '第 ' + (i+1) + ' 天';
+  document.getElementById('day-subtitle').textContent = ds.full + ' ' + ds.week + ' · ' + tripState.dest;
+  var badge = document.getElementById('day-ai-badge');
+  if(d.selected.length > 0){
+    badge.textContent = '已选 ' + d.selected.length + ' 个景点';
+    badge.className = 'text-[10px] font-bold text-deep2 bg-secondary/10 px-2.5 py-1 rounded-full';
+  } else if(d.recoDone){
+    badge.textContent = '待选择';
+    badge.className = 'text-[10px] font-bold text-deep3 bg-accent/10 px-2.5 py-1 rounded-full';
+  } else {
+    badge.textContent = '待推荐';
+    badge.className = 'text-[10px] font-bold text-deep3 bg-accent/10 px-2.5 py-1 rounded-full';
+  }
+  if(!d.weather){
+    d.weather = WEATHER_POOL[(i + new Date(d.date+'T00:00:00').getDay()) % WEATHER_POOL.length];
+  }
+  document.getElementById('inp-day-weather').value = d.weather;
+  document.getElementById('inp-day-budget').value = d.budget>0 ? d.budget : '';
+  document.getElementById('inp-day-time').value = d.time || '';
+  updateRecoBtn();
+  renderRecoList();
+  renderRouteBox();
+  showStep(4);
+}
+function backToOverview(){ showStep(2); }
+
+/* 三字段编辑（FR-DY-03）：手动编辑过的字段以用户为准，未编辑的由自动汇总更新 */
+function onFieldEdit(which){
+  var d = tripState.days[currentDay];
+  if(which === 'weather'){
+    d.weather = document.getElementById('inp-day-weather').value.trim();
+    d.manualW = true;
+  } else if(which === 'budget'){
+    var b = parseInt(document.getElementById('inp-day-budget').value, 10);
+    d.budget = (b>0 ? b : 0);
+    d.manualB = true;
+  } else if(which === 'time'){
+    d.time = document.getElementById('inp-day-time').value.trim();
+    d.manualT = true;
+  }
+  renderCover(); renderDays();
+  updateRecoBtn();
+}
+function refreshInputs(){
+  var d = tripState.days[currentDay];
+  document.getElementById('inp-day-weather').value = d.weather || '';
+  document.getElementById('inp-day-budget').value = d.budget>0 ? d.budget : '';
+  document.getElementById('inp-day-time').value = d.time || '';
+}
+function updateRecoBtn(){
+  var d = tripState.days[currentDay];
+  var btn = document.getElementById('btn-reco');
+  var lbl = document.getElementById('btn-reco-label');
+  if(!d.recoDone){
+    btn.style.display = 'flex';
+    lbl.textContent = '让 AI 推荐当天景点';
+    return;
+  }
+  btn.style.display = 'flex';
+  var edited = (d.weather && d.weather!==WEATHER_POOL[currentDay % WEATHER_POOL.length]) ||
+               d.budget>0 || !!d.time;
+  lbl.textContent = edited ? '已修改 · 重新生成景点卡片' : '重新生成景点卡片';
+}
+
+/* AI 推荐 / 重新生成（FR-DY-04：只刷新候选，保留已加入路线） */
+function generateRecos(i, silent, force){
+  if(!tripState) return;
+  var d = tripState.days[i];
+  var pool = RECOS_POOL[i % RECOS_POOL.length];
+  if(force || !d.recos){
+    var arr = pool.slice();
+    if(force && d.recos){
+      // 模拟"重新生成"：轮转候选顺序，让新候选有变化
+      var rot = (i + 1) % arr.length;
+      arr = arr.slice(rot).concat(arr.slice(0, rot));
+    }
+    d.recos = arr;
+    if(!d.weather) d.weather = WEATHER_POOL[(i + new Date(d.date+'T00:00:00').getDay()) % WEATHER_POOL.length];
+  }
+  d.recoDone = true;
+  renderCover(); renderDays();
+  if(!silent && currentDay === i){
+    updateRecoBtn();
+    renderRecoList();
+    refreshInputs();
+  }
+}
+function aiGenerateAll(){
+  tripState.days.forEach(function(_, i){ generateRecos(i, true, false); });
+  alert('原型演示：AI 已为 ' + tripState.days.length + ' 天生成景点推荐，进入每天手动挑选加入路线吧');
+}
+
+/* 勾选/移除/排序（FR-DY-05/06） */
+function toggleSpot(i, idx){
+  var d = tripState.days[i];
+  var r = d.recos[idx];
+  var at = d.selected.indexOf(r.name);
+  if(at >= 0) d.selected.splice(at, 1); else d.selected.push(r.name);
+  syncDay(i);
+}
+function removeSpot(i, k){ tripState.days[i].selected.splice(k, 1); syncDay(i); }
+function moveSpot(i, k, dir){
+  var sel = tripState.days[i].selected;
+  var j = k + dir;
+  if(j < 0 || j >= sel.length) return;
+  var tmp = sel[k]; sel[k] = sel[j]; sel[j] = tmp;
+  syncDay(i);
+}
+function syncDay(i){
+  recomputeDay(i);
+  renderRecoList();
+  renderRouteBox();
+  refreshInputs();   // 自动汇总结果同步回输入框（用户手改过的字段除外）
+  renderCover();
+  renderDays();
+}
+function recomputeDay(i){
+  var d = tripState.days[i];
+  var recos = d.recos || [];
+  if(d.selected.length === 0){ d.spots=''; d.route=''; if(!d.manualT) d.time=''; if(!d.manualB) d.budget=0; return; }
+  var sel = d.selected.map(function(n){
+    for(var k=0;k<recos.length;k++) if(recos[k].name===n) return recos[k];
+    return {dur:1, cost:0};
+  });
+  d.spots = d.selected.join(' · ');
+  var hours = sel.reduce(function(a,r){ return a + r.dur; }, 0) + (d.selected.length >= 3 ? 1 : 0);
+  var end = 9.5 + hours;
+  var eh = Math.floor(end), em = Math.round((end - eh) * 60);
+  if(!d.manualT) d.time = '09:30 – ' + eh + ':' + (em < 10 ? '0' + em : em);
+  d.route = '酒店出发 → ' + d.selected.join(' → ') + ' → 返回酒店';
+  var per = sel.reduce(function(a,r){ return a + r.cost; }, 0);
+  if(!d.manualB) d.budget = Math.round(per * tripState.people / 10) * 10;
+}
+function renderRecoList(){
+  var d = tripState.days[currentDay];
+  var box = document.getElementById('reco-list');
+  box.innerHTML = '';
+  if(!d.recos) return;
+  d.recos.forEach(function(r, idx){
+    var on = d.selected.indexOf(r.name) >= 0;
+    var el = document.createElement('button');
+    el.className = 'w-full bg-card rounded-2xl border p-3.5 flex items-start gap-3 text-left cursor-pointer transition ' + (on ? 'border-primary' : 'border-bord hover:border-primary');
+    el.onclick = function(){ toggleSpot(currentDay, idx); };
+    el.innerHTML =
+      '<span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ' + (on ? 'aurora' : 'bg-muted') + '">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + (on ? '#1C1917' : '#78716C') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+      '</span>' +
+      '<span class="flex-1 min-w-0 block">' +
+        '<span class="flex items-center gap-1.5 flex-wrap">' +
+          '<span class="text-sm font-bold text-fg">' + r.name + '</span>' +
+          '<span class="text-[9px] font-bold ' + (on ? 'text-deep bg-primary/10' : 'text-deep2 bg-secondary/10') + ' px-1.5 py-0.5 rounded-full">' + r.tag + '</span>' +
+        '</span>' +
+        '<span class="block text-[11px] text-mutedfg mt-1 leading-relaxed">' + r.desc + '</span>' +
+        '<span class="block text-[10px] text-mutedfg mt-1.5">建议 ' + r.dur + ' 小时 · 人均 ¥' + r.cost + '</span>' +
+      '</span>' +
+      '<span class="shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-full ' + (on ? 'bg-[#A16207] text-white' : 'bg-muted text-deep') + '">' + (on ? '已加入' : '+ 加入') + '</span>';
+    box.appendChild(el);
+  });
+}
+function renderRouteBox(){
+  var d = tripState.days[currentDay];
+  var box = document.getElementById('route-box');
+  document.getElementById('route-count').textContent = '已选 ' + d.selected.length + ' 个景点';
+  if(d.selected.length === 0){
+    box.innerHTML = '<p class="text-xs text-mutedfg text-center leading-relaxed py-2">还没有选择景点<br>从上方 AI 推荐中挑选加入当天路线</p>';
+    return;
+  }
+  var html = '';
+  d.selected.forEach(function(n, k){
+    html +=
+      '<div class="flex items-center gap-2 py-2' + (k>0 ? ' border-t border-bord' : '') + '">' +
+        '<span class="w-6 h-6 rounded-full bg-primary/10 text-deep text-[10px] font-bold flex items-center justify-center shrink-0">' + (k+1) + '</span>' +
+        '<span class="flex-1 text-sm font-semibold text-fg truncate">' + esc(n) + '</span>' +
+        '<button class="text-mutedfg hover:text-deep transition p-1 ' + (k===0?'opacity-30 pointer-events-none':'') + '" onclick="moveSpot(currentDay,' + k + ',-1)" aria-label="上移">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>' +
+        '</button>' +
+        '<button class="text-mutedfg hover:text-deep transition p-1 ' + (k===d.selected.length-1?'opacity-30 pointer-events-none':'') + '" onclick="moveSpot(currentDay,' + k + ',1)" aria-label="下移">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>' +
+        '</button>' +
+        '<button class="text-mutedfg hover:text-red-500 transition p-1" onclick="removeSpot(currentDay,' + k + ')" aria-label="移除">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>' +
+        '</button>' +
+      '</div>';
+  });
+  html += '<div class="mt-2 pt-2.5 border-t border-bord text-[11px] text-mutedfg leading-relaxed">' + esc(d.route) + '</div>';
+  box.innerHTML = html;
+}
+
+/* ============ 计划完成（FR-WZ-06：允许跳过未完成天，二次确认） ============ */
+function finishPlan(){
+  var undone = tripState.days.filter(function(d){ return d.selected.length === 0; }).length;
+  if(undone > 0 && !confirm('还有 ' + undone + ' 天未完成，确认跳过并完成计划？')) return;
+  var sum = tripState.days.reduce(function(a,d){ return a + d.budget; }, 0);
+  var done = tripState.days.filter(function(d){ return d.selected.length > 0; }).length;
+  PLANS.unshift({
+    id: Date.now(),
+    name: tripState.name,
+    dest: tripState.dest,
+    start: tripState.start,
+    end: tripState.end,
+    people: tripState.people,
+    finished: true,
+    budget: sum,
+    daysDone: done,
+    daysTotal: tripState.days.length
+  });
+  alert('计划「' + tripState.name + '」已完成，已加入我的计划');
+  tripState = null; tripName = '';
+  switchTab('list');
+}
+
+/* ============ 打开已有计划（编辑每日计划属性） ============ */
+function openPlan(id){
+  var p = PLANS.find(function(x){ return x.id===id; });
+  if(!p) return;
+  var days = dayCount(p.start, p.end);
+  var arr = [];
+  for(var i=0;i<days;i++){
+    var d = new Date(p.start+'T00:00:00'); d.setDate(d.getDate()+i);
+    arr.push({ date: toISO(d), recos:null, selected:[], recoDone:false, weather:'', budget:0, time:'', route:'', spots:'' });
+  }
+  tripState = { name:p.name, dest:p.dest, people:p.people, start:p.start, end:p.end, days:arr, editingId:p.id };
+  tripName = p.name;
+  document.getElementById('inp-name').value = p.name;
+  document.getElementById('inp-dest').value = p.dest;
+  document.getElementById('inp-start').value = p.start;
+  document.getElementById('inp-end').value = p.end;
+  document.getElementById('inp-people').textContent = p.people + ' 人';
+  people = p.people;
+  // 演示：京都计划预置前 5 天路线
+  if(id===1){
+    arr.forEach(function(_, i){ generateRecos(i, true, false); });
+    [0,1,2,3,4].forEach(function(k){
+      var d = arr[k];
+      d.selected = d.recos.slice(0,3).map(function(r){ return r.name; });
+      recomputeDay(k);
+    });
+    renderCover(); renderDays(); showStep(2);
+  } else {
+    renderCover(); renderDays(); showStep(2);
+  }
+  switchTab('plan');
+}
+
+/* ============ 旅行助手（FR-AS-01~03） ============ */
+function seedChat(){
+  var chat = document.getElementById('ai-chat');
+  chat.innerHTML = '';
+  appendMsg('user', '帮我看看「京都秋日漫游」第 3 天的行程会不会太赶？');
+  appendMsg('bot', '结合你的计划：第 3 天（岚山竹林 → 天龙寺 → 渡月桥）全程步行约 5km，节奏轻松。当天预算 ¥560，天气晴 25°C，建议 9 点前到竹林避开人流，中午在渡月桥附近用餐。整体不赶，可以把傍晚空出来加一个野宫神社。');
+}
+function appendMsg(role, text){
+  var chat = document.getElementById('ai-chat');
+  var wrap = document.createElement('div');
+  wrap.className = 'flex ' + (role==='user' ? 'justify-end' : 'justify-start');
+  wrap.id = 'msg-' + Date.now();
+  var inner = role==='user'
+    ? '<div class="max-w-[78%] bg-gradient-to-r from-[#FACC15] to-[#38BDF8] text-[#1C1917] text-sm leading-relaxed px-3.5 py-2.5 rounded-2xl rounded-br-md shadow-sm">' + esc(text) + '</div>'
+    : '<div class="max-w-[82%] flex items-start gap-2">' +
+        '<div class="w-7 h-7 rounded-full aurora flex items-center justify-center shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg></div>' +
+        '<div class="bg-card border border-bord text-fg text-sm leading-relaxed px-3.5 py-2.5 rounded-2xl rounded-bl-md shadow-sm">' + esc(text) + '</div>' +
+      '</div>';
+  wrap.innerHTML = inner;
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return wrap;
+}
+function sendMsg(){
+  var input = document.getElementById('ai-input');
+  var text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  appendMsg('user', text);
+  var typing = appendMsg('bot', '<span class="dot">●</span><span class="dot">●</span><span class="dot">●</span>');
+  setTimeout(function(){
+    typing.innerHTML = '';
+    typing.outerHTML = '';
+    appendMsg('bot', aiReply(text));
+  }, 900);
+}
+var REPLY_SEED = 0;
+function aiReply(q){
+  REPLY_SEED++;
+  var pool = [
+    '好的，已结合你的计划给出建议：当前「京都秋日漫游」总预算约 ¥17,000（2 人 7 天），每天 ¥2,000–¥2,800。第 3 天节奏合适，如果想更从容，可以把岚山小火车挪到第 4 天上午。需要我帮你调整某天的路线顺序吗？',
+    '建议预算分配：住宿 35%、餐饮 25%、交通 15%、景点门票 10%、购物与机动 15%。若有温泉或米其林安排，提前 3 天确认并预留浮动额度。',
+    '10 月是京都的秋天，白天约 20–25°C，早晚偏凉，建议薄外套 + 舒适步行鞋。遇降雨可换室内方案：京都国立博物馆、锦市场、高岛屋，或雨中漫步伏见稻荷。',
+    '好的，已为你生成 3 天东京建议：D1 浅草寺+晴空塔+秋叶原；D2 明治神宫+涩谷+表参道；D3 筑地市场+银座+台场。需要补充每日路线、预算和餐厅吗？',
+    '可以的，请告诉我更关注哪方面：交通接驳、景点预约、餐饮推荐，还是天气与备选方案？我可以帮你更新对应日期的计划。',
+    '收到。注意红叶季前奏期热门景点建议错峰：金阁寺 9 点前、伏见稻荷 7 点前到可避开旅行团。需要我把提示写进具体某天的计划备注吗？'
+  ];
+  if(q.indexOf('天气')>=0) return pool[2];
+  if(q.indexOf('预算')>=0 || q.indexOf('分配')>=0) return pool[1];
+  if(q.indexOf('生成')>=0 || q.indexOf('行程')>=0) return pool[3];
+  if(q.indexOf('雨天')>=0 || q.indexOf('下雨')>=0) return pool[2];
+  if(q.indexOf('赶')>=0 || q.indexOf('节奏')>=0 || q.indexOf('建议')>=0) return pool[0];
+  return pool[REPLY_SEED % pool.length];
+}
+
+/* ============ 初始化 ============ */
+document.getElementById('inp-day-weather').addEventListener('input', function(){ onFieldEdit('weather'); });
+document.getElementById('inp-day-budget').addEventListener('input', function(){ onFieldEdit('budget'); });
+document.getElementById('inp-day-time').addEventListener('input', function(){ onFieldEdit('time'); });
+renderPlanList();
+/* URL 锚点直达页面：file.html#list / #ai / #me / #plan（便于预览与测试）。
+   包裹在 r rFrame 中，避免与首屏渲染竞争。 */
+requestAnimationFrame(function(){
+  var t = (location.hash || '').replace('#', '');
+  if(['list','ai','me','plan'].indexOf(t) >= 0) switchTab(t);
+});
+</script>
+</body>
+</html>
