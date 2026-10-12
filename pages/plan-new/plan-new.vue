@@ -4,7 +4,7 @@
     <view class="head">
       <view class="back" @click="onBack">
         <!-- Lucide 官方 chevron-left（lucide-static v1.41.0，ISC 许可），path 为官方原始数据 -->
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <AppIcon name="chevron-left" color="#1C1917" size="22px" />
       </view>
       <view class="head-main">
         <text class="step-hint">STEP {{ step + 1 }} / 2</text>
@@ -22,7 +22,7 @@
       <view class="field">
         <text class="field-label">旅程名称</text>
         <view class="field-box">
-          <svg class="field-ico" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          <AppIcon name="edit" color="#A16207" :size="32" />
           <input
             class="field-input"
             v-model="form.name"
@@ -40,7 +40,7 @@
       <view class="field">
         <text class="field-label">目的地</text>
         <view class="field-box">
-          <svg class="field-ico" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <AppIcon name="pin" color="#A16207" :size="32" />
           <input
             class="field-input"
             v-model="form.destination"
@@ -58,7 +58,7 @@
         <text class="field-label">往返日期</text>
         <view class="field-row">
           <view class="field-box field-box--half">
-            <svg class="field-ico" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <AppIcon name="calendar" color="#78716C" :size="32" />
             <picker mode="date" :value="form.depart_date" @change="onDepart">
               <view class="picker" :class="{ 'picker--empty': !form.depart_date }">
                 {{ form.depart_date || '出发日期' }}
@@ -66,7 +66,7 @@
             </picker>
           </view>
           <view class="field-box field-box--half">
-            <svg class="field-ico" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <AppIcon name="calendar" color="#78716C" :size="32" />
             <picker mode="date" :value="form.return_date" @change="onReturn">
               <view class="picker" :class="{ 'picker--empty': !form.return_date }">
                 {{ form.return_date || '返回日期' }}
@@ -97,7 +97,7 @@
       <view class="field">
         <text class="field-label">总预算（元）</text>
         <view class="field-box">
-          <svg class="field-ico" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5.5H9.5a3 3 0 000 6h5a3 3 0 010 6H6"/></svg>
+          <AppIcon name="currency" color="#A16207" :size="32" />
           <input
             class="field-input"
             v-model="form.total_budget"
@@ -143,7 +143,7 @@
 
       <!-- 一键为全部天数生成推荐 -->
       <view class="ghost-btn" :class="{ 'ghost-btn--busy': generating }" @click="generateAll">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg>
+        <AppIcon name="sparkle" color="#1C1917" size="16px" />
         <text class="ghost-btn-text">{{ generating ? (genProgress || '正在生成…') : 'AI 一键推荐全部景点' }}</text>
       </view>
 
@@ -184,6 +184,7 @@
 // 注意：onLoad 是 uni-app 页面生命周期，必须从 @dcloudio/uni-app 导入，
 // 不能从 'vue' 导入（Vue 无此导出，会导致本页模块加载失败、页面打不开）。
 import { ref, reactive, computed } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import StepIndicator from '@/components/StepIndicator.vue'
 import {
@@ -465,7 +466,8 @@ function onBack() {
   flex-direction: column;
   background: $jp-bg;
   padding: 32rpx;
-  padding-top: calc(32rpx + env(safe-area-inset-top));
+  /* 原用 env(safe-area-inset-top)，在 Android 上恒为 0；改用 uni-app 内置变量（App 端为真实状态栏高度） */
+  padding-top: calc(32rpx + var(--status-bar-height));
   box-sizing: border-box;
 
   & * {
@@ -544,11 +546,6 @@ function onBack() {
   &--half {
     flex: 1;
   }
-}
-.field-ico {
-  width: 32rpx;
-  height: 32rpx;
-  flex-shrink: 0;
 }
 .field-input {
   flex: 1;

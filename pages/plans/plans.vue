@@ -17,7 +17,7 @@
         <!-- 搜索框（FR-PL-03） -->
         <view class="search">
           <view class="search-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <AppIcon name="search" color="#78716C" size="18px" />
           </view>
           <input
             class="search-input"
@@ -29,7 +29,7 @@
             @input="onSearchInput"
           />
           <view v-if="keyword" class="search-clear" @click="clearSearch">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <AppIcon name="close" color="#78716C" size="16px" />
           </view>
         </view>
 
@@ -63,14 +63,14 @@
             <text class="empty-title">{{ emptyTitle }}</text>
             <text class="empty-sub">{{ emptySub }}</text>
             <view class="empty-btn" @click="goNew">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              <AppIcon name="plus-bold" color="#1C1917" size="18px" />
               <text class="empty-btn-text">新建一段旅程</text>
             </view>
           </view>
 
           <!-- 新建入口（空态时隐藏，避免重复） -->
           <view v-if="visiblePlans.length" class="new-btn" @click="goNew">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            <AppIcon name="plus-bold" color="#A16207" size="18px" />
             <text class="new-btn-text">新建一段旅程</text>
           </view>
         </scroll-view>
@@ -107,6 +107,7 @@
 <script setup>
 // 我的计划页（原型 §我的计划 v5）：搜索 + 筛选（全部/草稿）+ 卡片列表 + 改名/删除。
 import { ref, computed } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import { onShow } from '@dcloudio/uni-app'
 import { listPlans, renamePlan, deletePlan } from '@/api/plan.js'
 import PlanCard from '@/components/PlanCard.vue'
@@ -264,7 +265,8 @@ function removePlan(p) {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 56rpx 48rpx 24rpx;
+  /* navigationStyle 为 custom，窗体沉浸式，需自己让出手机状态栏高度（H5 端该变量为 0，不影响） */
+  padding: calc(56rpx + var(--status-bar-height)) 48rpx 24rpx;
   color: #1C1917;
 }
 .head-title {

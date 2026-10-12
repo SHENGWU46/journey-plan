@@ -34,19 +34,19 @@
         <view class="menu">
           <view class="menu-item" @click="onMenu('旅行偏好')">
             <view class="menu-icon" style="background: rgba(250,204,21,0.16)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H11M14 17H5M17 17a3 3 0 003-3M7 7a3 3 0 00-3 3"/></svg>
+              <AppIcon name="sliders" color="#A16207" size="20px" />
             </view>
             <text class="menu-label">旅行偏好</text>
             <text class="menu-hint">{{ prefsHint }}</text>
-            <view class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></view>
+            <view class="chevron"><AppIcon name="chevron-right" color="#94A3B8" size="16px" /></view>
           </view>
           <view class="menu-item" @click="onMenu('通知提醒')">
             <view class="menu-icon" style="background: rgba(132,204,22,0.14)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4D7C0F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+              <AppIcon name="bell" color="#4D7C0F" size="20px" />
             </view>
             <text class="menu-label">通知提醒</text>
             <text class="menu-hint">开启</text>
-            <view class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></view>
+            <view class="chevron"><AppIcon name="chevron-right" color="#94A3B8" size="16px" /></view>
           </view>
         </view>
 
@@ -54,32 +54,32 @@
         <view class="menu">
           <view class="menu-item" @click="onMenu('修改密码')">
             <view class="menu-icon" style="background: rgba(120,113,108,0.12)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <AppIcon name="lock" color="#78716C" size="20px" />
             </view>
             <text class="menu-label">修改密码</text>
-            <view class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></view>
+            <view class="chevron"><AppIcon name="chevron-right" color="#94A3B8" size="16px" /></view>
           </view>
           <view class="menu-item" @click="onMenu('切换账号')">
             <view class="menu-icon" style="background: rgba(120,113,108,0.12)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+              <AppIcon name="logout" color="#78716C" size="20px" />
             </view>
             <text class="menu-label">切换账号</text>
-            <view class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></view>
+            <view class="chevron"><AppIcon name="chevron-right" color="#94A3B8" size="16px" /></view>
           </view>
           <view class="menu-item" @click="onMenu('帮助与反馈')">
             <view class="menu-icon" style="background: rgba(120,113,108,0.12)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg>
+              <AppIcon name="help" color="#78716C" size="20px" />
             </view>
             <text class="menu-label">帮助与反馈</text>
-            <view class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></view>
+            <view class="chevron"><AppIcon name="chevron-right" color="#94A3B8" size="16px" /></view>
           </view>
           <view class="menu-item" @click="onMenu('关于')">
             <view class="menu-icon" style="background: rgba(120,113,108,0.12)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+              <AppIcon name="info" color="#78716C" size="20px" />
             </view>
             <text class="menu-label">关于</text>
             <text class="menu-hint">v1.2</text>
-            <view class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></view>
+            <view class="chevron"><AppIcon name="chevron-right" color="#94A3B8" size="16px" /></view>
           </view>
         </view>
 
@@ -99,7 +99,7 @@
         <view class="modal-head">
           <text class="modal-title">{{ dialogTitle }}</text>
           <view class="modal-close" @click="closeDialog">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <AppIcon name="close" color="#78716C" size="18px" />
           </view>
         </view>
 
@@ -150,6 +150,7 @@
 // 个人中心（原型 §我的/个人中心）：头像/昵称 + 统计卡 + 菜单列表 + 退出登录。
 // 除「通知提醒」外，其余菜单功能均已实现（偏好本地持久化；修改密码走 API；切换账号/帮助/关于为交互流程）。
 import { ref, computed } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getUser, clearSession, setUser } from '@/utils/token.js'
 import { getProfile, updateProfile, changePassword } from '@/api/user.js'
@@ -321,7 +322,8 @@ function logout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 56rpx 48rpx 24rpx;
+  /* 让出手机状态栏高度（navigationStyle= custom；H5 端该变量为 0，不影响原样式） */
+  padding: calc(56rpx + var(--status-bar-height)) 48rpx 24rpx;
   color: #1C1917;
 }
 .head-title {

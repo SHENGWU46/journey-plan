@@ -21,7 +21,20 @@ import { getToken, clearSession, getRefreshToken, saveAccessToken } from '@/util
 // 后端运行在 8000（已加载含每日计划路由的新代码）。
 // 历史说明：早期 8000 曾跑旧代码（缺 days 路由），本会话临时在 8001 起过一个新实例；
 // 现 8000 已重启为新代码，8001 临时实例已关闭，故指向 8000。
-export const BASE_URL = 'http://127.0.0.1:8000'
+//
+// 环境区分（2026-10-11 部署上线）：开发期连本机，正式包连线上域名。
+// uni-app 打包时会把 process.env.NODE_ENV 替换为 'development' / 'production'；
+// 用 typeof 兜底，避免某些运行时 process 不存在时直接抛错（此时按生产处理）。
+// 真机调试若连不上：手机上的 127.0.0.1 指手机自己，需改成本机局域网 IP
+// （如 http://192.168.x.x:8000，并让后端以 --host 0.0.0.0 启动）。
+const IS_DEV =
+  typeof process !== 'undefined' &&
+  process.env &&
+  process.env.NODE_ENV === 'development'
+
+export const BASE_URL = IS_DEV
+  ? 'https://api.journey-plan.cn' // 开发：云端后端（方案 B，便于手机真机调试，不依赖本机 8000）
+  : 'https://api.journey-plan.cn' // 正式：线上（App 打包走这里）
 
 /** 登录页路径（token 失效时跳转目标） */
 const LOGIN_URL = '/pages/login/login'

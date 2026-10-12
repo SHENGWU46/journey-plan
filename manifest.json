@@ -1,5 +1,5 @@
 {
-    "name" : "journey-plan-app",
+    "name" : "j-plan",
     "appid" : "__UNI__AB61C53",
     "description" : "",
     "versionName" : "1.0.0",
@@ -41,7 +41,9 @@
                 ]
             },
             /* ios打包配置 */
-            "ios" : {},
+            "ios" : {
+                "dSYMs" : false
+            },
             /* SDK配置 */
             "sdkConfigs" : {}
         }

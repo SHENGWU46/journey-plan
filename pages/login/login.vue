@@ -105,7 +105,8 @@ function goRegister() {
 
 .brand {
   background: $jp-gradient-lemon;
-  padding: 120rpx 48rpx 80rpx;
+  /* 让出手机状态栏高度（navigationStyle= custom；H5 端该变量为 0，不影响原样式） */
+  padding: calc(120rpx + var(--status-bar-height)) 48rpx 80rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

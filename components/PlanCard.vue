@@ -3,7 +3,7 @@
     <!-- 草稿：图标头 + 名称 + 草稿标签 -->
     <view v-if="!plan.completed" class="draft-head">
       <view class="draft-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        <AppIcon name="edit" color="#A16207" size="22px" />
       </view>
       <view class="draft-main">
         <view class="draft-title-row">
@@ -52,6 +52,7 @@
 // 计划卡片（原型 §我的计划）：仅区分草稿 / 非草稿两态。
 // 草稿 = !completed（图标头 + 草稿标签）；非草稿 = completed（aurora 渐变封面 + 进度）。
 import { computed } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import StatusBadge from './StatusBadge.vue'
 
 const props = defineProps({

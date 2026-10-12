@@ -4,7 +4,7 @@
       <!-- 头部 -->
       <view class="head">
         <view class="back" @click="save">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <AppIcon name="arrow-left" color="#1C1917" :size="36" />
         </view>
         <view class="head-main">
           <text class="head-title">第 {{ dayIndex }} 天</text>
@@ -18,7 +18,7 @@
         <!-- 当天天气：AI 默认生成，可直接手改 -->
         <view class="field">
           <view class="field-row field-row--weather">
-            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#4D7C0F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.3 1.5A3.5 3.5 0 006 19h11.5z"/></svg>
+            <AppIcon name="cloud" color="#4D7C0F" :size="30" />
             <text class="field-label field-label--w">当天天气</text>
             <input
               class="field-input"
@@ -37,7 +37,7 @@
         <view class="grid2">
           <view class="field">
             <view class="field-row">
-              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5.5H9.5a3 3 0 000 6h5a3 3 0 010 6H6"/></svg>
+              <AppIcon name="currency" color="#A16207" :size="30" />
               <text class="field-label field-label--sm">当天预算</text>
             </view>
             <view class="field-row2">
@@ -53,7 +53,7 @@
           </view>
           <view class="field">
             <view class="field-row">
-              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              <AppIcon name="clock" color="#0284C7" :size="30" />
               <text class="field-label field-label--sm">游玩时间</text>
             </view>
             <input
@@ -75,13 +75,13 @@
           <text class="section-hint">点击卡片加入 / 取消</text>
         </view>
         <view class="reco-btn" :class="{ 'reco-btn--busy': generating }" @click="generate">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg>
+          <AppIcon name="sparkle" color="#1C1917" :size="32" />
           <text class="reco-btn-text">{{ generating ? '生成中…' : (recommendations.length ? '继续推荐更多景点' : '让 AI 推荐当天景点') }}</text>
         </view>
 
         <!-- 手动添加景点（字段与 AI 推荐 Attraction 一致） -->
         <view class="manual-btn" @click="openAdd">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          <AppIcon name="plus" color="#A16207" :size="30" />
           <text class="manual-btn-text">手动添加景点</text>
         </view>
 
@@ -94,7 +94,7 @@
             @click="toggle(a)"
           >
             <view class="reco-ico" :class="{ 'reco-ico--on': isSelected(a) }">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <AppIcon name="pin" :color="isSelected(a) ? '#1C1917' : '#78716C'" :size="36" />
             </view>
             <view class="reco-main">
               <view class="reco-name-row">
@@ -107,7 +107,7 @@
             <view class="reco-side">
               <text class="reco-add" :class="{ 'reco-add--on': isSelected(a) }" @click.stop="toggle(a)">{{ isSelected(a) ? '已加入' : '+ 加入' }}</text>
               <view class="reco-del" @click.stop="deleteCard(a)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+                <AppIcon name="trash" color="#DC2626" :size="26" />
               </view>
             </view>
           </view>
@@ -130,13 +130,13 @@
               <text class="route-name">{{ a.name }}</text>
               <view class="route-ops">
                 <view class="op-btn" :class="{ 'op-btn--off': i === 0 }" @click="moveUp(i)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                  <AppIcon name="arrow-up" color="#78716C" :size="30" />
                 </view>
                 <view class="op-btn" :class="{ 'op-btn--off': i === selected.length - 1 }" @click="moveDown(i)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                  <AppIcon name="arrow-down" color="#78716C" :size="30" />
                 </view>
                 <view class="op-btn op-btn--del" @click="removeAt(i)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+                  <AppIcon name="trash" color="#DC2626" :size="30" />
                 </view>
               </view>
             </view>
@@ -202,6 +202,7 @@
 // - 我的路线支持排序与删除，确认后 PUT /plans/{id}/days/{day} 落库
 // 入参：planId / day(第几天) / date，来自总览页跳转
 import { ref, computed, reactive } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import { onLoad } from '@dcloudio/uni-app'
 import {
   generateDailyPlans,
@@ -404,7 +405,8 @@ onLoad((opts) => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding-top: env(safe-area-inset-top);
+  /* 原为 env(safe-area-inset-top)：该值在 Android 上恒为 0，改用 uni-app 内置变量（App 端为真实状态栏高度，H5 端为 0） */
+  padding-top: var(--status-bar-height);
   background: $jp-bg;
 
   & * {
@@ -435,8 +437,6 @@ onLoad((opts) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-
-  svg { width: 36rpx; height: 36rpx; }
 }
 .head-main {
   flex: 1;
@@ -495,11 +495,6 @@ onLoad((opts) => {
   align-items: center;
   gap: 8rpx;
   margin-top: 12rpx;
-}
-.ico {
-  width: 30rpx;
-  height: 30rpx;
-  flex-shrink: 0;
 }
 .field-label {
   font-size: 22rpx;
@@ -583,7 +578,6 @@ onLoad((opts) => {
   cursor: pointer;
 
   &--busy { opacity: 0.7; }
-  svg { width: 32rpx; height: 32rpx; }
 }
 .reco-btn-text {
   font-size: 28rpx;
@@ -622,10 +616,8 @@ onLoad((opts) => {
   justify-content: center;
   flex-shrink: 0;
 
-  svg { width: 36rpx; height: 36rpx; }
   &--on {
     background: $jp-gradient-lemon;
-    svg { stroke: #1C1917; }
   }
 }
 .reco-main {
@@ -694,7 +686,6 @@ onLoad((opts) => {
   justify-content: center;
   cursor: pointer;
 
-  svg { width: 26rpx; height: 26rpx; }
   &:active { background: rgba(220, 38, 38, 0.12); }
 }
 
@@ -748,7 +739,6 @@ onLoad((opts) => {
   color: $jp-muted-fg;
   cursor: pointer;
 
-  svg { width: 30rpx; height: 30rpx; }
   &--off { opacity: 0.3; pointer-events: none; }
   &--del { color: $jp-danger; }
 }
@@ -810,7 +800,6 @@ onLoad((opts) => {
   border-radius: $jp-radius;
   cursor: pointer;
 
-  svg { width: 30rpx; height: 30rpx; }
   &:hover { border-color: $jp-primary; }
 }
 .manual-btn-text {

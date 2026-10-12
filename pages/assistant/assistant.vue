@@ -30,7 +30,7 @@
           >
             <template v-if="m.role === 'ai'">
               <view class="msg-avatar">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+                <AppIcon name="sparkles" color="#1C1917" size="14px" />
               </view>
               <view class="bubble bubble--ai">
                 <text class="bubble-text">{{ m.text }}</text>
@@ -43,7 +43,7 @@
 
           <view v-if="thinking" class="msg msg--ai">
             <view class="msg-avatar">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+              <AppIcon name="sparkles" color="#1C1917" size="14px" />
             </view>
             <view class="bubble bubble--ai">
               <view class="typing"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
@@ -64,7 +64,7 @@
               @confirm="send"
             />
             <view class="send-btn" :class="{ 'send-btn--on': draft.trim() }" @click="send">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C1917" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              <AppIcon name="send" color="#1C1917" size="16px" />
             </view>
           </view>
           <p class="disclaimer">AI 生成内容仅供参考，出行前请以官方信息为准</p>
@@ -78,8 +78,10 @@
 
 <script setup>
 // 旅行助手（严格参照 docs/journey-plan-prototype.html §PAGE 3 旅行助手）。
-// AI 回答走 askAssistant（后端接口 TODO(backend)）；失败时本地 mock 回复，保证前端可交互。
+// AI 回答走 askAssistant（后端接口）；失败时明确提示，不静默降级成 mock，
+// 否则「后端故障」会伪装成「AI 已回答」，演示时无法分辨。
 import { ref, nextTick, onMounted } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import { askAssistant } from '@/api/assistant.js'
 import AppTabBar from '@/components/AppTabBar.vue'
 
@@ -118,13 +120,29 @@ async function reply(text) {
       .slice(0, -1)
       .map((m) => ({ role: m.role, text: m.text }))
     const res = await askAssistant(text, history)
-    append('ai', res.reply || mockReply(text))
+    if (res && res.reply) {
+      append('ai', res.reply)
+    } else if (USE_MOCK_FALLBACK) {
+      append('ai', mockReply(text))
+    } else {
+      append('ai', '⚠️ 助手没有返回内容，请稍后重试。')
+    }
   } catch (e) {
-    append('ai', mockReply(text))
+    // 失败必须看得见：以前这里静默换成 mockReply，会把「后端挂了」伪装成「AI 答了」，
+    // 演示时根本分辨不出来。只有显式打开 USE_MOCK_FALLBACK 才走兜底话术。
+    if (USE_MOCK_FALLBACK) {
+      append('ai', mockReply(text))
+    } else {
+      const reason = (e && (e.message || e.errMsg)) || '未知错误'
+      append('ai', '⚠️ AI 服务暂时不可用：' + reason)
+    }
   } finally {
     thinking.value = false
   }
 }
+
+// 兜底话术开关：默认关闭。打开后接口失败会用下方 mockReply 的固定文案作答（仅离线调试用）。
+const USE_MOCK_FALLBACK = false
 
 function mockReply(text) {
   if (text.includes('天气')) {
@@ -186,7 +204,8 @@ onMounted(() => {
 /* 头部：位于黄色部分（原型 page-header） */
 .page-header {
   flex-shrink: 0;
-  padding: 56rpx 48rpx 24rpx;
+  /* 让出手机状态栏高度（navigationStyle= custom；H5 端该变量为 0，不影响原样式） */
+  padding: calc(56rpx + var(--status-bar-height)) 48rpx 24rpx;
   color: #1C1917;
 }
 .head-title {
