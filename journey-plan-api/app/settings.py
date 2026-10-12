@@ -38,9 +38,9 @@ DB_ECHO = os.environ.get("DB_ECHO", "").lower() in ("1", "true", "yes")
 
 # ---------------------------------------------------------------- JWT
 
-# 与 AN-API 的差异：AN-API 把真实密钥硬编码在源码里（JWT_SECRET_KEY="***"），
-# 本项目按 AGENTS.md「禁止硬编码密钥」改为环境变量优先；默认值是公开的占位串，
-# 仅用于本地开发，生产环境务必通过环境变量注入真实密钥。
+# 与 AN-API 的差异：AN-API 把真实密钥直接硬编码在源码里，本项目按 AGENTS.md
+# 「禁止硬编码密钥」改为环境变量优先；下面的默认值是公开的占位串，仅用于本地开发，
+# 生产环境务必通过环境变量注入真实密钥。
 _DEFAULT_JWT_SECRET = "dev-only-journey-plan-secret-change-me"
 
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or _DEFAULT_JWT_SECRET
