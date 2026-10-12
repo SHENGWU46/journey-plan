@@ -13,30 +13,66 @@ Journey Plan 智能旅行计划 — 后端服务（FastAPI + MySQL）
 | 鉴权 | JWT（Bearer） |
 | 运行 | uvicorn |
 
-## 目录结构（规划）
+## 目录结构
 
 ```
 journey-plan-api/
-├── main.py            应用入口（当前为最小 FastAPI 实例）
-├── app/               规划：随功能拆分
-│   ├── routers/       路由：auth / plans / user / assistant
-│   ├── models/        SQLAlchemy 模型（User / Plan / DayPlan / Spot / ChatMessage）
-│   ├── schemas/       Pydantic 模型
-│   ├── services/      AI Agent、天气等外部服务封装
-│   └── core/          配置、数据库连接、安全
-└── requirements.txt   依赖清单（待补）
+├── main.py               应用入口（FastAPI 实例、CORS、路由注册）
+├── alembic/              数据库迁移（建表走迁移，不用 create_all）
+├── scripts/seed.py       演示数据脚本
+├── agents/               AI 子系统
+│   ├── agent/            Agent 构建与执行（LangChain / LangGraph）
+│   ├── model/            模型工厂（对话模型 / 向量模型）
+│   ├── rag/              RAG：文档解析、向量库、检索服务
+│   ├── tools/            Agent 工具（天气 / 定位）与中间件
+│   ├── data/             知识库语料（13 份 XX旅游景点.txt）
+│   └── config/           rag.yml（模型名）/ chroma.yml（向量库参数）
+├── app/
+│   ├── settings.py       全局配置唯一来源（DB_URI / JWT_*，自动读 .env）
+│   ├── models/           ORM 模型包：__init__.py 集中 engine / AsyncSessionFactory / Base
+│   ├── repository/       数据访问层
+│   ├── routers/          路由：auth / plans / days / assistant / user
+│   ├── schemas/          Pydantic 模型
+│   ├── services/         业务与 AI 服务封装
+│   └── core/             JWT 鉴权等可复用能力
+├── requirements.txt      依赖范围（规范版）
+└── requirements.lock.txt 精确版本（与实际运行环境一致，部署以此为准）
 ```
 
 ## 快速开始
 
 ```bash
-python -m venv .venv
-pip install fastapi uvicorn sqlalchemy pymysql
+# 1) 依赖
+python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.lock.txt
+
+# 2) 配置（.env 不入库）
+cat > .env <<'EOF'
+DATABASE_URL=mysql+aiomysql://root:你的密码@127.0.0.1:3306/journey-base?charset=utf8mb4
+JWT_SECRET_KEY=换成一串随机字符串
+DASHSCOPE_API_KEY=sk-你的阿里云百炼Key
+EOF
+
+# 3) 建表并启动
+alembic upgrade head
 uvicorn main:app --reload --port 8000
 ```
 
-- 交互式接口文档：<http://127.0.0.1:8000/docs>
-- 数据库连接配置位于 `app/core/config.py`（规划中）
+- 交互式接口文档：<http://127.0.0.1:8000/docs>（另有 `/redoc`）
+- 配置统一由 `app/settings.py` 读取环境变量，勿在别处散落 `os.environ`
+
+### 启用 AI 功能
+
+两个 AI 接口（`POST /assistant/ask`、`POST /plans/{plan_id}/days`）需要 `DASHSCOPE_API_KEY`。
+另外**向量库不进仓库**，首次使用前需先建一次索引：
+
+```bash
+python -m agents.rag.vector_store      # 读 agents/data/ 语料写入 Chroma
+```
+
+重复执行会按文件 MD5 自动跳过已入库的语料。
+
+> 完整项目背景、架构与部署方式见[仓库根 README](../README.md)。
 
 ## 接口契约
 
@@ -113,7 +149,8 @@ FastAPI 同时自动生成交互式文档：`/docs`（Swagger UI）与 `/redoc`�
 
 - **AssistantAskReq**：`message`(1-2000 字符，本轮提问) `history[ChatMessage]`（不含本轮的上下文，`role` ∈ user/ai/system/assistant，`text` 非空）。
 - 响应：`{ "reply": "..." }`。
-- 错误：AI 服务不可用/无有效返回 → **502**，前端据此回退本地 mock。
+- 错误：AI 服务不可用 / 无有效返回 → **502**。响应体为 `{"detail": "AI 服务暂时不可用：<异常类型>: <原因>"}`，
+  同时后端会记录完整 traceback 到日志；**前端不再静默回退本地 mock**，而是把失败原因直接显示出来（避免把故障伪装成已答复）。
 
 ---
 

@@ -1,0 +1,11 @@
+# 统一换行符：shell 脚本必须保持 LF
+# 否则 Windows 检出后再上传到 Linux 服务器会因 CRLF 而执行失败（本项目踩过该坑）
+*.sh    text eol=lf
+*.conf  text eol=lf
+
+# 二进制文件不做行尾转换
+*.png   binary
+*.jpg   binary
+*.ico   binary
+*.docx  binary
+*.sqlite3 binary
