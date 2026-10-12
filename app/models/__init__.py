@@ -21,7 +21,19 @@ from sqlalchemy.orm import DeclarativeBase
 from app import settings
 
 # 仅创建 engine 对象，惰性连接；首次使用时才真正建立数据库连接。
-engine = create_async_engine(settings.DB_URI, echo=settings.DB_ECHO)
+#
+# pool_pre_ping / pool_recycle（2026-10-11 上线后修复）：
+# MySQL 的 wait_timeout 默认 28800 秒（8 小时），会单方面断开空闲连接，
+# 而连接池里仍留着这些「死连接」。服务空闲一夜后，第一个请求恰好取到死连接
+# 就会抛 MySQL server has gone away → 接口 500（第二个请求起恢复正常）。
+#   - pool_pre_ping=True：取出连接前先探活，失效的自动丢弃并重建；
+#   - pool_recycle=1800：半小时回收一次，远小于 wait_timeout，双保险。
+engine = create_async_engine(
+    settings.DB_URI,
+    echo=settings.DB_ECHO,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+)
 
 AsyncSessionFactory = async_sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False

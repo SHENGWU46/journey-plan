@@ -6,11 +6,15 @@
 - 要求 Bearer 鉴权（与其他 router 一致）。
 - AI 服务异常时返回 502 + detail，前端据此回退本地 mock。
 """
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.core.auth import AuthHandler
 from app.schemas.assistant import AssistantAskReq
 from app.services.assistant_service import ask_assistant, _is_public_ip
+
+logger = logging.getLogger(__name__)
 
 auth_handler = AuthHandler()
 router = APIRouter(prefix="/assistant", tags=["assistant"])
@@ -53,11 +57,17 @@ async def ask(
     try:
         reply = await ask_assistant(_build_messages(payload), client_ip=effective_ip)
     except Exception as e:
+        # 记完整 traceback，而不是只把 str(e) 塞进 detail：
+        # 上游（如 langchain 的旧 tongyi 适配层）常把真实错误包装得面目全非
+        # （实例：DashScope 返回 404「Model not exist」却被抛成 KeyError: 'request'），
+        # 没有 traceback 几乎无法定位。
+        logger.exception("AI 服务调用失败 | user_id=%s | client_ip=%s", user_id, client_ip)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"AI 服务暂时不可用：{e}",
-        )
+            detail=f"AI 服务暂时不可用：{type(e).__name__}: {e}",
+        ) from e
     if not reply:
+        logger.warning("AI 未返回有效内容 | user_id=%s | client_ip=%s", user_id, client_ip)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="AI 未返回有效内容，请稍后再试",
