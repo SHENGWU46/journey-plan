@@ -4,8 +4,8 @@
   "private": true,
   "description": "Journey Plan 智能旅行计划 · 移动端（uni-app + Vue 3）",
   "scripts": {
-    "dev:h5": "cross-env UNI_INPUT_DIR=. uni",
-    "build:h5": "cross-env UNI_INPUT_DIR=. uni build"
+    "dev:h5": "node scripts/h5.mjs",
+    "build:h5": "node scripts/h5.mjs build"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5020520260829001",
