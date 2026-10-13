@@ -1,10 +1,18 @@
 import os
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import auth_router, plans, user_router
 from app.routers.assistant import router as assistant_router
+
+# 显式加载 .env，供下面读 CORS_ORIGINS 使用。
+# 不能只依赖 app.settings 里的 load_dotenv —— 那要靠 import 顺序「顺带」触发；
+# 一旦 import 结构变动，CORS 白名单会静默变空（接口全被浏览器拦掉，且没有任何报错）。
+# 用「相对本文件的路径」而不是 cwd，保证从任何目录启动都读到同一份 .env。
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 app = FastAPI()
 
