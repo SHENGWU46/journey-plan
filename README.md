@@ -3,8 +3,17 @@
 > 从需求分析、交互原型、前后端实现，到 AI Agent、域名备案与线上部署的**完整个人实践项目**。
 >
 > 移动端 uni-app（Vue 3） · 后端 FastAPI · MySQL 8 · LangChain / LangGraph 驱动的 AI 行程规划
->
-> **已部署上线**：<https://api.journey-plan.cn/docs>（HTTPS · 已完成 ICP 备案与公安联网备案）
+
+---
+
+## 在线体验
+
+| 入口 | 地址 | 说明 |
+|---|---|---|
+| **移动端 H5** | <https://app.journey-plan.cn> | 可直接注册试用。手机打开体验最佳；桌面浏览器按 `F12` → 切手机视口（375×812） |
+| **接口文档** | <https://api.journey-plan.cn/docs> | Swagger UI，11 个接口可在线调试 |
+
+> 全部走 HTTPS，域名已完成 **ICP 备案 + 公安联网备案**。演示环境，数据可能随时清空。
 
 ---
 
@@ -169,8 +178,20 @@ npm run dev:h5          # 浏览器调试（http://127.0.0.1:5173）
 [`deploy/`](deploy/) 下有可直接复用的脚本与配置，对应的操作已在腾讯云 OpenCloudOS 9 上跑通：
 
 - `deploy-api.sh` —— 装 MySQL、建库导入、建 Python 环境、写 systemd、配 nginx 反代
+- `deploy-h5.sh` —— 部署 H5 静态站、写 nginx 配置，并**自动识别证书**启用 HTTPS
 - `enable-https.sh` —— 部署证书、配置 443 与 80 跳转
-- `nginx/` —— 站点配置
+- `nginx/` —— 三个站点的 nginx 配置
+
+线上共三个站点，各走独立 `server` 块：
+
+| 域名 | 用途 | 说明 |
+|---|---|---|
+| `app.journey-plan.cn` | 移动端 H5 | 静态托管到 `/var/www/h5`，独立 DV 证书（443 + 80 跳转） |
+| `api.journey-plan.cn` | 后端接口 | 反向代理 → `127.0.0.1:8000`，独立 DV 证书（443 + 80 跳转） |
+| `www.journey-plan.cn` | 网站首页（备案信息展示） | 底部悬挂 ICP 备案号与公安联网备案号，均链接至官方查询站 |
+
+> 免费 DV 证书是**单域名**的，`api` 与 `app` 各需一张（可用 `openssl x509 -checkhost` 校验覆盖范围）；
+> 有效期 90 天，到期需重新申请并部署。
 
 配套完成的还有：域名解析、**ICP 备案**与**公安联网备案**、安全组最小化放行（只开 80 / 443，**不暴露 8000 与 3306**）、数据库仅监听本机。
 

@@ -3,6 +3,8 @@
 Journey Plan 智能旅行计划的移动端，一套代码可产出 **Android App** 与 **H5**。
 
 > 完整项目（含后端与 AI 子系统）见[仓库根 README](../README.md)。
+>
+> **线上 H5**：<https://app.journey-plan.cn> —— 可直接注册试用（演示环境，数据可能随时清空）。
 
 ## 技术栈
 
